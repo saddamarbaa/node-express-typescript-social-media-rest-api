@@ -19,6 +19,26 @@ const morgan = require("morgan");
 // Using dotenv package to create environment variables
 const dotenv = require("dotenv").config();
 
+// Access Environment variables
+const MONGO_USER = process.env.MONGO_USER;
+const MONGO_PASSWORD = process.env.MONGO_PASSWORD;
+const MONGO_DB_NAME = process.env.MONGO_DB_NAME;
+
+// Connecting to MongoDB(Connecting to the Database)
+const mongoDB = `mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}@cluster0.p8vlm.mongodb.net/${MONGO_DB_NAME}?retryWrites=true&w=majority`;
+
+mongoose
+	.connect(mongoDB, {
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+		useFindAndModify: false,
+		useCreateIndex: true,
+	})
+	.then(() =>
+		console.log("MongoDB database connection established successfully ..."),
+	)
+	.catch((error) => console.log("MongoDB connection error:", error));
+
 // Log the request
 app.use(morgan("dev"));
 
