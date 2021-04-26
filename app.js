@@ -19,6 +19,14 @@ const morgan = require("morgan");
 // Using dotenv package to create environment variables
 const dotenv = require("dotenv").config();
 
+// Import get post routes
+const getPosts = require("./routes/getPosts");
+
+// Import add post routes
+const addPost = require("./routes/addPost");
+
+const userRoutes = require("./routes/users");
+
 // Access Environment variables
 const MONGO_USER = process.env.MONGO_USER;
 const MONGO_PASSWORD = process.env.MONGO_PASSWORD;
@@ -47,6 +55,15 @@ app.use(cors());
 
 // Parses incoming requests with JSON payloads
 app.use(express.json());
+
+// Public file
+// Serve all static files inside public directory.
+app.use("/static", express.static("public"));
+
+// Routes which Should handle the requests
+app.use("/api", getPosts);
+app.use("/api/addPost", addPost);
+app.use("/users", userRoutes);
 
 // Home page API Endpoint (define the home page route)
 app.get("/", (req, res) => {
