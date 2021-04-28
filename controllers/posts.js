@@ -5,8 +5,10 @@ const Posts = require("../models/posts");
 
 // API Endpoint to return all Posts
 const getAllPosts = (req, res, next) => {
-	Posts.find() // find all the Post
+	// find all the Post
+	Posts.find()
 		.select("title  content  postImage  _id  addedDate")
+		.sort({ addedDate: -1 }) // sorted the post
 		.exec() // .exec() method return promise
 		.then((posts) => {
 			// pass more information  with response
@@ -109,7 +111,7 @@ const addNewPost = (req, res) => {
 		addedDate: `${Date.now()}`,
 	});
 
-	console.log(newPost);
+	// console.log(newPost);
 	newPost
 		.save()
 		.then((result) => {
