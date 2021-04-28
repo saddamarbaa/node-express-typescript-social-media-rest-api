@@ -1,12 +1,12 @@
 /** @format */
 
 const bcrypt = require("bcryptjs");
-const User = require("../models/User");
+const User = require("../models/users");
 const mongoose = require("mongoose");
 
 const generateAccessToken = require("../auths/getToken");
 
-// API Endpoint for Handling Post Request to /Users/signup
+// API Endpoint for Handling Post Request to / Users/signup
 exports.user_signup = (req, res, next) => {
 	// Validated that the user was not registered before
 	User.find({ email: req.body.email })
