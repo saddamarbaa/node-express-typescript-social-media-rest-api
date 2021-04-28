@@ -30,11 +30,7 @@ const userSchema = new Schema({
 		max: 10,
 		required: true,
 	},
-	// strict: true,
 });
 
-// Compile model from schema
-const User = mongoose.model("User", userSchema);
-
-//Export model
+// Compile model from schema and Exported
 module.exports = mongoose.model("User", userSchema);
