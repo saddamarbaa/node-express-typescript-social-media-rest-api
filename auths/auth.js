@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 
 // Access Environment variables
 const TOKEN_SECRET = process.env.TOKEN_SECRET || "asdl4u47jj4dj";
+const ADMIN = process.env.ADMIN;
 
 // Middleware function to authenticate token
 // Check to make sure header is not undefined, if so, return Forbidden (403)
@@ -25,14 +26,16 @@ const authenticateToken = (req, res, next) => {
 	// if there is token then verify using the same Secret Key
 	jwt.verify(token, TOKEN_SECRET, (err, user) => {
 		// HTTP Status 403 mean Forbidden
-		if (err) {
+		if (err || user.email !== ADMIN) {
 			return res.status(403).send({
 				status: "Auth Failed",
 			});
 		}
-		console.log("The Authorized User is ", user);
-		req.user = user;
 
+		if (user && user.email === ADMIN) {
+			console.log("The Authorized User is ", user);
+			req.user = user;
+		}
 		next();
 	});
 };
