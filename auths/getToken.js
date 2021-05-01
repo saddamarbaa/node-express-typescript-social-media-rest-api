@@ -3,9 +3,6 @@
 // Import jwt from node_modules (Using jwt)
 const jwt = require("jsonwebtoken");
 
-// Access Environment variables
-const TOKEN_SECRET = process.env.TOKEN_SECRET || "asdl4u47jj4dj";
-
 // function for Generating Token
 const generateAccessToken = (user) => {
 	console.log(user);
