@@ -91,7 +91,6 @@ exports.user_login = (req, res, next) => {
 					// if we have user
 					if (result) {
 						const token = generateAccessToken(user[0]);
-						console.log(token);
 						return res.status(200).send({
 							token: token,
 							Status: "Auth successful",
