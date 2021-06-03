@@ -64,7 +64,9 @@ exports.user_signup = (req, res, next) => {
 exports.user_login = (req, res, next) => {
 	// Validated that the user was not registered before
 	// (find) return an array with one user or empty array
+
 	User.find({ email: req.body.email })
+
 		.exec()
 		.then((user) => {
 			if (user.length < 1) {
