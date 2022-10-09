@@ -8,11 +8,8 @@ const connectDB = (url: any) => {
   });
 
   // @event error: Emitted when an error occurs on this connection.
-  mongoose.connection.on('error', (err) => {
-    console.log(
-      'MongoDB connection error. Please make sure MongoDB is running: ',
-      err.message,
-    );
+  mongoose.connection.on('error', err => {
+    console.log('MongoDB connection error. Please make sure MongoDB is running: ', err.message);
   });
 
   // @event disconnected: Emitted after getting disconnected from the db
@@ -23,9 +20,7 @@ const connectDB = (url: any) => {
   // @event close: Emitted after we disconnected and onClose executed on all of this connections models.
   process.on('SIGINT', () => {
     mongoose.connection.close(() => {
-      console.log(
-        'MongoDB database connection is disconnected due to app termination...',
-      );
+      console.log('MongoDB database connection is disconnected due to app termination...');
       process.exit(0); // close database connection
     });
   });

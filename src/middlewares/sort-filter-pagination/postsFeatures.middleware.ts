@@ -1,8 +1,8 @@
-// @ts-nocheck 
+// @ts-nocheck
 
 import model from '../../models/Post.model';
 
-export const postsPaginationMiddleware = ()=> {
+export const postsPaginationMiddleware = () => {
   return async (req, res, next) => {
     // Pagination
     const page = parseInt(req.query.page) || 1;
@@ -62,10 +62,7 @@ export const postsPaginationMiddleware = ()=> {
     // Search
     if (req.query.search) {
       filter = {
-        $or: [
-          { title: { $regex: req.query.title } },
-          { content: { $regex: req.query.content } },
-        ],
+        $or: [{ title: { $regex: req.query.title } }, { content: { $regex: req.query.content } }],
       };
     }
     // console.log('filter', filter);
@@ -77,7 +74,7 @@ export const postsPaginationMiddleware = ()=> {
         // .populate(
         //   'userId',
         //   'firstName lastName  surname email dateOfBirth gender joinedDate cart isVerified  profileImage  mobileNumber  status role  companyName   acceptTerms nationality  favoriteAnimal  address  profileImage  bio mobileNumber',
-        // ) 
+        // )
         .limit(limit)
         .sort(sort)
         .skip(startIndex)
@@ -93,4 +90,4 @@ export const postsPaginationMiddleware = ()=> {
   };
 };
 
-export default  postsPaginationMiddleware ;
+export default postsPaginationMiddleware;

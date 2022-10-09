@@ -1,4 +1,6 @@
-require('dotenv').config();
+import dotenv from 'dotenv-safe';
+
+dotenv.config();
 
 export const environmentConfig = {
   MONGODB_CONNECTION_STRING: process.env.MONGODB_CONNECTION_STRING,
@@ -18,7 +20,5 @@ export const environmentConfig = {
   ACCESS_TOKEN_KEY_EXPIRE_TIME: process.env.ACCESS_TOKEN_KEY_EXPIRE_TIME,
   REFRESH_TOKEN_KEY_EXPIRE_TIME: process.env.REFRESH_TOKEN_KEY_EXPIRE_TIME,
 };
-
-
 
 export default environmentConfig;

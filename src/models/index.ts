@@ -1,1 +1,1 @@
-export * from './post.model';
+export * from './Post.model';

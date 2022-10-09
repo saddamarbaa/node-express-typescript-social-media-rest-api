@@ -10,4 +10,3 @@ router.use('/', healthCheckRoute);
 router.use('/posts', posts);
 
 export default router;
-
