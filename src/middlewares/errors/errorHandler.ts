@@ -1,12 +1,12 @@
-import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
+import { ErrorRequestHandler, NextFunction, Response } from 'express';
 
 import ErrorResponse from '../../interfaces/ErrorResponse';
 
-// @ts-ignore
 export const errorHandlerMiddleware: ErrorRequestHandler = (
   error,
   req,
   res: Response<ErrorResponse>,
+  // eslint-disable-next-line no-unused-vars
   next: NextFunction
 ) => {
   const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
