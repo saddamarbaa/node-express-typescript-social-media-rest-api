@@ -1,12 +1,13 @@
 import express from 'express';
 
-import posts from '../routes/post.route';
-import healthCheckRoute from '../routes/index';
+import postRoutes from '@src/routes/post.route';
+import authRoutes from '@src/routes/auth.route';
+import healthCheckRoute from '@src/routes/index';
 
 const router = express.Router();
 
-/** Healthcheck */
 router.use('/', healthCheckRoute);
-router.use('/posts', posts);
+router.use('/posts', postRoutes);
+router.use('/auth', authRoutes);
 
 export default router;

@@ -1,20 +1,28 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-export interface IPost {
-  title: string;
-  content: string;
-  postImage: string;
-  author: string;
-}
+import { Post } from '@src/interfaces';
 
-export interface IPostModel extends IPost, Document {}
-
-const PostSchema: Schema = new Schema(
+export const PostSchema: Schema<Post> = new Schema(
   {
-    title: { type: String, required: true },
-    content: { type: String, required: true },
+    title: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      required: [true, 'Please provide title'],
+    },
+    content: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      required: [true, 'Please provide post description'],
+    },
     postImage: { type: String, required: true },
-    author: { type: String, required: true },
+    author: {
+      // every post shuold blong to user
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User', // add relationship
+      required: [true, 'author is required'],
+    },
   },
   {
     timestamps: true,
@@ -22,4 +30,4 @@ const PostSchema: Schema = new Schema(
   }
 );
 
-export default mongoose.model<IPost>('Post', PostSchema);
+export default mongoose.models.Post || mongoose.model<Post>('Post', PostSchema);

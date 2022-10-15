@@ -1,72 +1,187 @@
 import { NextFunction, Request, Response } from 'express';
 
-import Post from '../models/Post.model';
-import { response } from '../utils';
+import Post from '@src/models/Post.model';
+import { isValidMongooseObjectId, response } from '@src/utils';
+import { CreatePostRequestBody, Post as TPost, TPaginationResponse } from '@src/interfaces';
 
-export const getPostsService = async (req: Request, res: Response, _next: NextFunction) => {
-  // @ts-ignore
-  const { results, next, previous, currentPage, totalDocs, totalPages, lastPage } = res.paginatedResults;
-
-  const responseObject: any = {
-    totalDocs: totalDocs || 0,
-    totalPages: totalPages || 0,
-    lastPage: lastPage || 0,
-    count: results?.length || 0,
-    currentPage: currentPage || 0,
-  };
-
-  if (next) {
-    responseObject.nextPage = next;
-  }
-  if (previous) {
-    responseObject.prevPage = previous;
-  }
-
-  responseObject.posts = results.map((doc: any) => {
-    return {
-      _id: doc?._id,
-      title: doc?.title,
-      content: doc?.content,
-      postImage: doc?.postImage,
-      createdAt: doc?.createdAt,
-      updatedAt: doc?.updatedAt,
-      author: doc?.author,
+export const getPostsService = async (req: Request, res: TPaginationResponse) => {
+  if (res?.paginatedResults) {
+    const { results, next, previous, currentPage, totalDocs, totalPages, lastPage } = res.paginatedResults;
+    const responseObject: any = {
+      totalDocs: totalDocs || 0,
+      totalPages: totalPages || 0,
+      lastPage: lastPage || 0,
+      count: results?.length || 0,
+      currentPage: currentPage || 0,
     };
-  });
 
-  return response<any>({
-    data: responseObject,
-    success: true,
-    error: false,
-    message: 'Successful Found posts',
-    status: 200,
-  });
+    if (next) {
+      responseObject.nextPage = next;
+    }
+    if (previous) {
+      responseObject.prevPage = previous;
+    }
+
+    responseObject.posts = results?.map((doc: TPost) => {
+      return {
+        _id: doc?._id,
+        title: doc?.title,
+        content: doc?.content,
+        postImage: doc?.postImage,
+        createdAt: doc?.createdAt,
+        updatedAt: doc?.updatedAt,
+        author: doc?.author,
+      };
+    });
+
+    return res.status(200).send(
+      response<any>({
+        success: true,
+        error: false,
+        message: 'Successful Found posts',
+        status: 200,
+        data: responseObject,
+      })
+    );
+  }
 };
 
-export const createPostService = async (req: Request, res: Response, next: NextFunction) => {
-  const { title, content, postImage, addedDate, author } = req.body;
+export const createPostService = async (req: CreatePostRequestBody<TPost>, res: Response, next: NextFunction) => {
+  const { title, content } = req.body;
+
+  if (!req.file) {
+    res.status(422).send(
+      response<null>({
+        data: null,
+        success: false,
+        error: true,
+        message: `Invalid request (Please upload Image)`,
+        status: 422,
+      })
+    );
+  }
+
+  const userId = req?.user?.userId || '';
 
   const postData = new Post({
-    author,
     title,
     content,
-    addedDate,
-    postImage,
+    postImage: `/static/uploads/posts/${req?.file?.filename}`,
+    author: userId,
   });
 
   try {
     const createdPost = await Post.create(postData);
-    return response<any>({
-      data: createdPost,
-      success: true,
-      error: false,
-      message: 'Successfully added new post',
-      status: 201,
-    });
+
+    return res.status(201).send(
+      response<TPost>({
+        data: createdPost,
+        success: true,
+        error: false,
+        message: 'Successfully added new post',
+        status: 201,
+      })
+    );
   } catch (error) {
-    console.log('error');
     return next(error);
   }
 };
 
-export default { getPostsService, createPostService };
+export const getPostService = async (req: Request, res: Response, next: NextFunction) => {
+  if (!isValidMongooseObjectId(req.params.postId) || !req.params.postId) {
+    return res.status(422).send(
+      response<null>({
+        data: null,
+        success: false,
+        error: true,
+        message: `Invalid request`,
+        status: 422,
+      })
+    );
+  }
+
+  try {
+    const doc = await Post.findById(req.params.postId);
+    if (!doc) {
+      return res.status(400).send(
+        response<[]>({
+          data: [],
+          success: false,
+          error: true,
+          message: `Failed to find post by given ID ${req.params.postId}`,
+          status: 400,
+        })
+      );
+    }
+
+    const data = {
+      post: {
+        _id: doc?._id,
+        title: doc?.title,
+        content: doc?.content,
+        postImage: doc?.postImage,
+        createdAt: doc?.createdAt,
+        updatedAt: doc?.updatedAt,
+        author: doc?.author,
+      },
+    };
+
+    return res.status(200).send(
+      response<{ post: TPost }>({
+        success: true,
+        error: false,
+        message: `Successfully Found post by given id: ${req.params.postId}`,
+        status: 200,
+        data,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const deletePostService = async (req: Request, res: Response, next: NextFunction) => {
+  if (!isValidMongooseObjectId(req.params.postId) || !req.params.postId) {
+    return res.status(422).send(
+      response<null>({
+        data: null,
+        success: false,
+        error: true,
+        message: `Invalid request`,
+        status: 422,
+      })
+    );
+  }
+
+  try {
+    const toBeDeletedPost = await Post.findByIdAndRemove({
+      _id: req.params.postId,
+    });
+
+    if (!toBeDeletedPost) {
+      return res.status(400).send(
+        response<null>({
+          data: null,
+          success: false,
+          error: true,
+          message: `Failed to delete post by given ID ${req.params.postId}`,
+          status: 400,
+        })
+      );
+    }
+
+    return res.status(200).json(
+      response<null>({
+        data: null,
+        success: true,
+        error: false,
+        message: `Successfully deleted post by ID ${req.params.postId}`,
+        status: 200,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export default { getPostsService, getPostService, createPostService };

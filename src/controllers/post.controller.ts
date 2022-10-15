@@ -1,23 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { createPostService, getPostsService } from '../services';
+import { createPostService, deletePostService, getPostService, getPostsService } from '@src/services';
+import { CreatePostRequestBody, TPaginationResponse, Post as TPost } from '@src/interfaces';
 
-export const getPostsController = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const apiResponse = await getPostsService(req, res, next);
-    return res.status(200).json(apiResponse);
-  } catch (error) {
-    return next(error);
-  }
-};
+export const getPostsController = (req: Request, res: TPaginationResponse) => getPostsService(req, res);
+export const getPostController = (req: Request, res: Response, next: NextFunction) => getPostService(req, res, next);
+export const createPostController = (req: CreatePostRequestBody<TPost>, res: Response, next: NextFunction) =>
+  createPostService(req, res, next);
+export const deletePostController = (req: Request, res: Response, next: NextFunction) =>
+  deletePostService(req, res, next);
 
-export const createPostController = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const apiResponse = await createPostService(req, res, next);
-    return res.status(200).json(apiResponse);
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export default { getPostsController, createPostController };
+export default { getPostsController, createPostController, getPostController, deletePostController };
