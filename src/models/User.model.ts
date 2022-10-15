@@ -3,7 +3,7 @@ import { Schema, Document, model, models } from 'mongoose';
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
 
-import { environmentConfig } from '@src/configs/environment.config';
+import { environmentConfig } from '@src/configs/custom-environment-variables.config';
 import { IUser } from '@src/interfaces';
 
 export interface IUserDocument extends Document, IUser {

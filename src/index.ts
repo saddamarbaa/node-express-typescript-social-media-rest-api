@@ -1,7 +1,6 @@
-import app from './app';
-
-import connectDB from './configs/db.config';
-import environmentConfig from './configs/environment.config';
+import app from '@src/app';
+import { environmentConfig } from '@src/configs/custom-environment-variables.config';
+import { connectDB } from '@src/configs/db.config';
 
 // Connecting to MongoDB and Starting Server
 const start = async () => {
@@ -10,7 +9,7 @@ const start = async () => {
 
     console.log('MongoDB database connection established successfully to... ');
 
-    app.listen(environmentConfig.PORT, () => {
+    app?.listen(environmentConfig.PORT, () => {
       console.log(`Listening: http://localhost:${environmentConfig.PORT}`);
     });
   } catch (error) {

@@ -4,7 +4,7 @@ import User from '@src/models/User.model';
 import Token from '@src/models/Token.model';
 import { response } from '@src/utils';
 import { ResponseT } from '@src/interfaces';
-import { environmentConfig } from '@src/configs/environment.config';
+import { environmentConfig } from '@src/configs/custom-environment-variables.config';
 
 export const signupService = async (req: Request, res: Response<ResponseT<null>>, next: NextFunction) => {
   const { email, password, name, confirmPassword } = req.body;

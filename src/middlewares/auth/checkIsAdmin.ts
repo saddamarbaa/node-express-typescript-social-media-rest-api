@@ -2,7 +2,7 @@ import { NextFunction, Response } from 'express';
 
 import User from '@src/models/User.model';
 import { response } from '@src/utils';
-import { environmentConfig } from '@src/configs/environment.config';
+import { environmentConfig } from '@src/configs/custom-environment-variables.config';
 import { IAuthRequest as IAdminRequest } from '@src/interfaces';
 
 export const isAdmin = async (req: IAdminRequest, res: Response, next: NextFunction) => {

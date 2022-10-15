@@ -9,7 +9,7 @@ describe('GET /api/v1/posts', () => {
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
       .expect(200)
-      .then(response => {
+      .then((response) => {
         expect(response.body.data).toHaveProperty('length');
         expect(response.body.data.length).toBe(100);
         expect(response.body.data[0]).toHaveProperty('userId');

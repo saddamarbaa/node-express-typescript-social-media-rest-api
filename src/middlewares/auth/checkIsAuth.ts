@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { NextFunction, Response } from 'express';
 
 import { response } from '@src/utils';
-import { environmentConfig } from '@src/configs/environment.config';
+import { environmentConfig } from '@src/configs/custom-environment-variables.config';
 import { IAuthRequest } from '@src/interfaces';
 
 export const isAuth = (req: IAuthRequest, res: Response, next: NextFunction) => {
