@@ -4,7 +4,7 @@ import Post from '@src/models/Post.model';
 import { isValidMongooseObjectId, response } from '@src/utils';
 import { CreatePostRequestBody, Post as TPost, TPaginationResponse } from '@src/interfaces';
 
-export const getPostsService = async (req: Request, res: TPaginationResponse) => {
+export const getPostsService = async (_req: Request, res: TPaginationResponse) => {
   if (res?.paginatedResults) {
     const { results, next, previous, currentPage, totalDocs, totalPages, lastPage } = res.paginatedResults;
     const responseObject: any = {
@@ -184,4 +184,57 @@ export const deletePostService = async (req: Request, res: Response, next: NextF
   }
 };
 
-export default { getPostsService, getPostService, createPostService };
+export const editPostService = async (req: CreatePostRequestBody<TPost>, res: Response, next: NextFunction) => {
+  const { title, content } = req.body;
+  if (!isValidMongooseObjectId(req.params.postId) || !req.params.postId) {
+    return res.status(422).send(
+      response<null>({
+        data: null,
+        success: false,
+        error: true,
+        message: `Invalid request`,
+        status: 422,
+      })
+    );
+  }
+
+  try {
+    const toBeUpdatedPost = await Post.findById(req.params.postId);
+
+    if (!toBeUpdatedPost) {
+      return res.status(400).send(
+        response<null>({
+          data: null,
+          success: false,
+          error: true,
+          message: `Failed to update post by given ID ${req.params.postId}`,
+          status: 400,
+        })
+      );
+    }
+
+    toBeUpdatedPost.title = title || toBeUpdatedPost.title;
+    toBeUpdatedPost.content = content || toBeUpdatedPost.content;
+    toBeUpdatedPost.postImage = !req.file ? toBeUpdatedPost.postImage : `/static/uploads/posts/${req?.file?.filename}`;
+
+    const updatedPost = await toBeUpdatedPost.save();
+
+    console.log(updatedPost);
+
+    return res.status(200).json(
+      response<{ post: TPost }>({
+        data: {
+          post: updatedPost,
+        },
+        success: true,
+        error: false,
+        message: `Successfully deleted post by ID ${req.params.postId}`,
+        status: 200,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export default { getPostsService, getPostService, createPostService, editPostService };

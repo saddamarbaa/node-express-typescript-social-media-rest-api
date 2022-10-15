@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { createPostService, deletePostService, getPostService, getPostsService } from '@src/services';
+import { createPostService, editPostService, deletePostService, getPostService, getPostsService } from '@src/services';
 import { CreatePostRequestBody, TPaginationResponse, Post as TPost } from '@src/interfaces';
 
 export const getPostsController = (req: Request, res: TPaginationResponse) => getPostsService(req, res);
@@ -9,5 +9,13 @@ export const createPostController = (req: CreatePostRequestBody<TPost>, res: Res
   createPostService(req, res, next);
 export const deletePostController = (req: Request, res: Response, next: NextFunction) =>
   deletePostService(req, res, next);
+export const editPostController = (req: CreatePostRequestBody<TPost>, res: Response, next: NextFunction) =>
+  editPostService(req, res, next);
 
-export default { getPostsController, createPostController, getPostController, deletePostController };
+export default {
+  getPostsController,
+  createPostController,
+  getPostController,
+  deletePostController,
+  editPostController,
+};
