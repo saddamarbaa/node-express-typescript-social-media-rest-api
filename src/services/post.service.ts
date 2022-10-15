@@ -27,6 +27,7 @@ export const getPostsService = async (_req: Request, res: TPaginationResponse) =
         _id: doc?._id,
         title: doc?.title,
         content: doc?.content,
+        category: doc?.category,
         postImage: doc?.postImage,
         createdAt: doc?.createdAt,
         updatedAt: doc?.updatedAt,
@@ -47,7 +48,7 @@ export const getPostsService = async (_req: Request, res: TPaginationResponse) =
 };
 
 export const createPostService = async (req: CreatePostRequestBody<TPost>, res: Response, next: NextFunction) => {
-  const { title, content } = req.body;
+  const { title, content, category } = req.body;
 
   if (!req.file) {
     res.status(422).send(
@@ -66,6 +67,7 @@ export const createPostService = async (req: CreatePostRequestBody<TPost>, res: 
   const postData = new Post({
     title,
     content,
+    category,
     postImage: `/static/uploads/posts/${req?.file?.filename}`,
     author: userId,
   });
@@ -123,6 +125,7 @@ export const getPostService = async (req: Request, res: Response, next: NextFunc
         createdAt: doc?.createdAt,
         updatedAt: doc?.updatedAt,
         author: doc?.author,
+        category: doc?.category,
       },
     };
 
@@ -185,7 +188,7 @@ export const deletePostService = async (req: Request, res: Response, next: NextF
 };
 
 export const editPostService = async (req: CreatePostRequestBody<TPost>, res: Response, next: NextFunction) => {
-  const { title, content } = req.body;
+  const { title, content, category } = req.body;
   if (!isValidMongooseObjectId(req.params.postId) || !req.params.postId) {
     return res.status(422).send(
       response<null>({
@@ -216,10 +219,9 @@ export const editPostService = async (req: CreatePostRequestBody<TPost>, res: Re
     toBeUpdatedPost.title = title || toBeUpdatedPost.title;
     toBeUpdatedPost.content = content || toBeUpdatedPost.content;
     toBeUpdatedPost.postImage = !req.file ? toBeUpdatedPost.postImage : `/static/uploads/posts/${req?.file?.filename}`;
+    toBeUpdatedPost.category = category || toBeUpdatedPost?.category;
 
     const updatedPost = await toBeUpdatedPost.save();
-
-    console.log(updatedPost);
 
     return res.status(200).json(
       response<{ post: TPost }>({

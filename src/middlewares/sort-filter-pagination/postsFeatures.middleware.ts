@@ -63,6 +63,17 @@ export const postsPaginationMiddleware = () => {
       }
     }
 
+    // Search
+    if (req.query.search) {
+      filter = {
+        $or: [
+          { title: { $regex: req.query.search } },
+          { content: { $regex: req.query.search } },
+          { category: { $regex: req.query.search } },
+        ],
+      };
+    }
+
     try {
       results.results = await model
         .find(filter)
