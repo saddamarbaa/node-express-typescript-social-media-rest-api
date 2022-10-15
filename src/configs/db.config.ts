@@ -1,14 +1,14 @@
 import mongoose from 'mongoose';
 
 // Connecting to MongoDB(Connecting to the Database)
-const connectDB = (url: any) => {
+export const connectDB = (url: any) => {
   // @event connected: Emitted when this connection successfully connects to the db. May be emitted multiple times in reconnected scenarios
   mongoose.connection.on('connected', () => {
     console.log('MongoDB database connection established successfully');
   });
 
   // @event error: Emitted when an error occurs on this connection.
-  mongoose.connection.on('error', err => {
+  mongoose.connection.on('error', (err) => {
     console.log('MongoDB connection error. Please make sure MongoDB is running: ', err.message);
   });
 
