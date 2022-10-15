@@ -23,7 +23,15 @@ export const PostSchema: Schema<Post> = new Schema(
       ref: 'User', // add relationship
       required: [true, 'author is required'],
     },
+    category: {
+      type: String,
+      lowercase: true,
+      enum: ['coding', 'sports', 'all'],
+      default: 'coding',
+      trim: true,
+    },
   },
+
   {
     timestamps: true,
     versionKey: false,

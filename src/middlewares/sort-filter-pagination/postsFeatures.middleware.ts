@@ -48,10 +48,25 @@ export const postsPaginationMiddleware = () => {
       sort.createdAt = -1;
     }
 
+    // Filter
+    let filter: any = {};
+    if (req.query.filterBy && req.query.category) {
+      console.log(req.query.category.toLowerCase());
+      if (req.query.category.toLowerCase() === 'sports') {
+        filter.$or = [{ category: 'sports' }];
+      } else if (req.query.category.toLowerCase() === 'coding') {
+        filter.$or = [{ category: 'coding' }];
+      } else if (req.query.category.toLowerCase() === 'all') {
+        filter = {};
+      } else {
+        filter = {};
+      }
+    }
+
     try {
       results.results = await model
-        .find()
-        .select('title content postImage author createdAt updatedAt')
+        .find(filter)
+        .select('title content postImage author createdAt updatedAt, category')
         .populate(
           'author',
           'name firstName lastName  surname email dateOfBirth gender joinedDate cart isVerified  profileImage  mobileNumber  status role  companyName   acceptTerms nationality  favoriteAnimal  address  profileImage  bio mobileNumber'

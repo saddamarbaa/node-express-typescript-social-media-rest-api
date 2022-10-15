@@ -11,6 +11,7 @@ export interface Post {
   _id: string;
   createdAt?: string;
   updatedAt?: string;
+  category?: string;
 }
 
 export interface CreatePostRequestBody<T> extends Request {
