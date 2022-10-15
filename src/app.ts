@@ -5,7 +5,6 @@ import helmet from 'helmet';
 import cors from 'cors';
 import dotenv from 'dotenv-safe';
 import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
 
 // Import Routes
 import api from '@src/api';
@@ -19,16 +18,19 @@ dotenv.config();
 // Initialize app with express
 const app: express.Application | undefined = express();
 
-// app.use(helmet());
-
-// app.use(cookieParser());
-
 // Load App Middleware
 app.use(morgan('dev'));
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+  })
+);
+app.use(cors());
 // Serve all static files inside public directory.
 app.use('/static', express.static('public'));
 
