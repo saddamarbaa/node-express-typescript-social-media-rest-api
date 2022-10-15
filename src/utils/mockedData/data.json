@@ -1,0 +1,30 @@
+[
+  {
+    "id": "1615372300349",
+    "title": "Self-taught developer",
+    "content": "I'm a self-taught Fullstack Web developer who is passionate about writing code, solving problems, building react App, I Teach Web Development and Documenting my coding journey, I’m looking forward to collaborate on any Open Source project, which I consider interesting or useful.",
+    "post_image": "uploads/post-image-1615372300349.jpg",
+    "added_date": "1615372300349"
+  },
+  {
+    "id": "1614766656226",
+    "title": "Why learning coding is important?",
+    "content": "Nowadays with everything being electronic, everything needs to be programmed! \n\nFrom computers, to cars, machines, or anything else it most likely requires programming!\n\nSo as a result, demand for coders keeps increasing year by year, due to all these technological advances!",
+    "post_image": "uploads/post-image-1614766656226.jpg",
+    "added_date": "1614766656226"
+  },
+  {
+    "id": "1613557056226",
+    "title": "I LOVE JavaScript",
+    "content": "I have been using JavaScript since the beginning of my coding career!\nI used it to build simple websites and I used it to build large scale applications!  \nNow I use it to teach others, as well as create large applications. The possibilities of this language are endless, and the use cases keep increasing every single day! ",
+    "post_image": "uploads/post-image-1613557056226.png",
+    "added_date": "1613557056226"
+  },
+  {
+    "id": "1608718656226",
+    "title": "My first job as a developer",
+    "content": "In college, I met a friend at a computer club who was showing a really cool application where you can swipe between different types of clothing!\nBeing very intrigued, I asked my friend if there is any way I can help out and join the team! After some thinking, he told me to finish an assignment, and then they will consider me. Over the weekend, I finished the assignment and was right away told I can join the team, though I would be working for free. That was completely fine for me! ",
+    "post_image": "uploads/post-image-1608718656226.jpg",
+    "added_date": "1608718656226"
+  }
+]
