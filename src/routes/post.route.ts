@@ -11,7 +11,7 @@ import { isAdmin, isAuth, postsPaginationMiddleware, uploadImage } from '@src/mi
 
 const router = express.Router();
 
-router.get('/', isAuth, postsPaginationMiddleware(), getPostsController);
+router.get('/', postsPaginationMiddleware(), getPostsController);
 router.get('/:postId', getPostController);
 router.post('/', isAuth, isAdmin, uploadImage.single('postImage'), createPostController);
 router.delete('/:postId', isAuth, isAdmin, deletePostController);
