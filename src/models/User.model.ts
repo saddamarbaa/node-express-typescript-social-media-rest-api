@@ -58,14 +58,12 @@ const UserSchema: Schema<IUserDocument> = new Schema(
       type: String,
       required: [true, 'Please provide password'],
       minlength: [6, 'Password must be more than 6 characters'],
-      maxLength: [32, 'Password must be less than 32 characters'],
       trim: true,
     },
     confirmPassword: {
       type: String,
       required: [true, 'Please provide confirmed Password'],
       minlength: [6, 'Password must be more than 6 characters'],
-      maxLength: [32, 'Password must be less than 32 characters'],
       trim: true,
     },
     companyName: {
