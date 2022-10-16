@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import User from '@src/models/User.model';
 import Token from '@src/models/Token.model';
-import { response } from '@src/utils';
+import { response, sendEmailVerificationEmail } from '@src/utils';
 import { ResponseT } from '@src/interfaces';
 import { environmentConfig } from '@src/configs/custom-environment-variables.config';
 
@@ -40,6 +40,11 @@ export const signupService = async (req: Request, res: Response<ResponseT<null>>
 
     // Save the updated token object
     await token.save();
+
+    const link = `${environmentConfig.CLIENT_URL}/verify-email/token=${token.emailVerificationToken}&id=${token.userId}`;
+
+    // send mail for email verification
+    sendEmailVerificationEmail(email, name, link);
 
     // Todo ( send mail for email verification)
     // Send back refreshToken and accessToken
