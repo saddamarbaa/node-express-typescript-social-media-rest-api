@@ -1,20 +1,40 @@
-import mongoose from 'mongoose';
+import mongoose, { ConnectOptions, Error } from 'mongoose';
 
 // Connecting to MongoDB(Connecting to the Database)
-export const connectDB = (url: any) => {
+export const connectDB = (MONGODB_URI: any) => {
   // @event connected: Emitted when this connection successfully connects to the db. May be emitted multiple times in reconnected scenarios
   mongoose.connection.on('connected', () => {
     console.log('MongoDB database connection established successfully');
   });
 
+  mongoose.connection.on('reconnected', () => {
+    console.log('Mongo Connection Reestablished');
+  });
+
   // @event error: Emitted when an error occurs on this connection.
-  mongoose.connection.on('error', (err) => {
-    console.log('MongoDB connection error. Please make sure MongoDB is running: ', err.message);
+  mongoose.connection.on('error', (error: Error) => {
+    console.log('MongoDB connection error. Please make sure MongoDB is running: ');
+    console.log(`Mongo Connection ERROR: ${error}`);
+  });
+
+  // @event close
+  mongoose.connection.on('close', () => {
+    console.log('Mongo Connection Closed...');
   });
 
   // @event disconnected: Emitted after getting disconnected from the db
   mongoose.connection.on('disconnected', () => {
     console.log('MongoDB database connection is disconnected...');
+    console.log('Trying to reconnect to Mongo ...');
+    setTimeout(() => {
+      mongoose.connect(MONGODB_URI, {
+        keepAlive: true,
+        socketTimeoutMS: 3000,
+        connectTimeoutMS: 3000,
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      } as ConnectOptions);
+    }, 3000);
   });
 
   // @event close: Emitted after we disconnected and onClose executed on all of this connections models.
@@ -26,7 +46,13 @@ export const connectDB = (url: any) => {
   });
 
   // mongoose.connect return promise
-  return mongoose.connect(url);
+  mongoose.connect(MONGODB_URI, {
+    keepAlive: true,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  } as ConnectOptions);
+
+  return mongoose.connect(MONGODB_URI);
 };
 
 export default connectDB;
