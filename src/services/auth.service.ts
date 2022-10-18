@@ -221,4 +221,68 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-export default { signupService, loginService };
+export const verifyEmailService = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user)
+      return res.status(400).send(
+        response<null>({
+          data: null,
+          success: false,
+          error: true,
+          message: `Email verification token is invalid or has expired. Please click on resend for verify your Email.`,
+          status: 400,
+        })
+      );
+
+    // user is already verified
+    if (user.isVerified && user.status === 'active') {
+      return res.status(200).send(
+        response<null>({
+          data: null,
+          success: true,
+          error: false,
+          message: `User has already been verified. Please Login..`,
+          status: 200,
+        })
+      );
+    }
+
+    const emailVerificationToken = await Token.findOne({
+      userId: user._id,
+      refreshToken: req.params.token,
+    });
+
+    if (!emailVerificationToken) {
+      return res.status(400).send(
+        response<null>({
+          data: null,
+          success: false,
+          error: true,
+          message: `Email verification token is invalid or has expired.`,
+          status: 400,
+        })
+      );
+    }
+    // Verfiy the user
+    user.isVerified = true;
+    user.status = 'active';
+    user.acceptTerms = true;
+    await user.save();
+    await emailVerificationToken.delete();
+
+    return res.status(200).json(
+      response<null>({
+        data: null,
+        success: true,
+        error: false,
+        message: 'Your account has been successfully verified . Please Login. ',
+        status: 200,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export default { signupService, loginService, verifyEmailService };
