@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Schema, Document, model, models } from 'mongoose';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions, VerifyErrors, VerifyOptions } from 'jsonwebtoken';
 import validator from 'validator';
 
 import { environmentConfig } from '@src/configs/custom-environment-variables.config';
@@ -58,14 +58,12 @@ const UserSchema: Schema<IUserDocument> = new Schema(
       type: String,
       required: [true, 'Please provide password'],
       minlength: [6, 'Password must be more than 6 characters'],
-      maxLength: [32, 'Password must be less than 32 characters'],
       trim: true,
     },
     confirmPassword: {
       type: String,
       required: [true, 'Please provide confirmed Password'],
       minlength: [6, 'Password must be more than 6 characters'],
-      maxLength: [32, 'Password must be less than 32 characters'],
       trim: true,
     },
     companyName: {
@@ -176,12 +174,13 @@ const UserSchema: Schema<IUserDocument> = new Schema(
   }
 );
 
-UserSchema.methods.comparePassword = async function (candidatePassword: any) {
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   const isMatch = await bcrypt.compare(candidatePassword, this.password);
   return isMatch;
 };
 
 UserSchema.pre('save', async function (next) {
+  console.log('Middleware called before saving the user is', this);
   // eslint-disable-next-line @typescript-eslint/no-this-alias
   const user = this;
   if (user.isModified('password')) {
@@ -193,7 +192,7 @@ UserSchema.pre('save', async function (next) {
 });
 
 UserSchema.post('save', function () {
-  console.log('User is been Save ', this);
+  console.log('Middleware called after saving the user is (User is been Save )', this);
 });
 
 UserSchema.methods.createJWT = function () {

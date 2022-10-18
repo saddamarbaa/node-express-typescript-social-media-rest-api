@@ -62,7 +62,7 @@ export const createPostService = async (req: CreatePostRequestBody<TPost>, res: 
     );
   }
 
-  const userId = req?.user?.userId || '';
+  const userId = req?.user?._id || '';
 
   const postData = new Post({
     title,
