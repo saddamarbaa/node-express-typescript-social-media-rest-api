@@ -496,7 +496,7 @@ export const sendEmailVerificationEmail = (userEmail: string, userName: string, 
       // console.log('Sending Email error:', error);
       console.log('Sending Email error:');
     } else {
-      console.log(`Successfully  send email to ${userEmail}...`);
+      console.log(`Successfully send email to ${userEmail}...`);
     }
   });
 };

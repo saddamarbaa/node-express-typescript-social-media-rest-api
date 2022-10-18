@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
+import { SignOptions } from 'jsonwebtoken';
 import User from '@src/models/User.model';
 import Token from '@src/models/Token.model';
 import { response, sendEmailVerificationEmail } from '@src/utils';
@@ -9,6 +10,9 @@ import { environmentConfig } from '@src/configs/custom-environment-variables.con
 export const signupService = async (req: Request, res: Response<ResponseT<null>>, next: NextFunction) => {
   const { email, password, name, confirmPassword } = req.body;
   const role = environmentConfig?.ADMIN_EMAIL?.includes(`${email}`) ? 'admin' : 'user';
+  // const status = environmentConfig?.ADMIN_EMAIL?.includes(`${email}`) ? 'active' : 'pending';
+  const acceptTerms = !!environmentConfig?.ADMIN_EMAIL?.includes(`${email}`);
+  // const isVerified = !!environmentConfig?.ADMIN_EMAIL?.includes(`${email}`);
 
   const newUser = new User({
     name,
@@ -16,6 +20,9 @@ export const signupService = async (req: Request, res: Response<ResponseT<null>>
     password,
     confirmPassword,
     role,
+    // status,
+    acceptTerms,
+    // isVerified,
   });
 
   try {
@@ -33,31 +40,54 @@ export const signupService = async (req: Request, res: Response<ResponseT<null>>
     }
 
     const user = await newUser.save();
-    const token = await new Token({ userId: user._id });
+    let token = await new Token({ userId: user._id });
+
+    const payload = {
+      userId: user._id,
+    };
+
+    const accessTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
+    const accessTokenOptions: SignOptions = {
+      expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+      issuer: environmentConfig.JWT_ISSUER,
+      audience: String(user._id),
+    };
+
+    const refreshTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
+    const refreshTokenJwtOptions: SignOptions = {
+      expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+      issuer: environmentConfig.JWT_ISSUER,
+      audience: String(user._id),
+    };
 
     // Generate and set verify email token
-    token.generateEmailVerificationToken();
+    const generatedAccessToken = await token.generateToken(payload, accessTokenSecretKey, accessTokenOptions);
+    const generatedRefreshToken = await token.generateToken(payload, refreshTokenSecretKey, refreshTokenJwtOptions);
 
-    // Save the updated token object
-    await token.save();
+    // Save the updated token
+    token.refreshToken = generatedRefreshToken;
+    token.accessToken = generatedAccessToken;
+    token = await token.save();
 
-    const link = `${environmentConfig.CLIENT_URL}/verify-email/token=${token.emailVerificationToken}&id=${token.userId}`;
+    const verifyEmailLink = `${environmentConfig.CLIENT_URL}/verify-email.html?id=${user._id}&token=${token.refreshToken}`;
 
     // send mail for email verification
-    sendEmailVerificationEmail(email, name, link);
+    sendEmailVerificationEmail(email, name, verifyEmailLink);
 
-    // Todo ( send mail for email verification)
-    // Send back refreshToken and accessToken
-    // const token = user.createJWT();
-    // const accessToken = await signAccessToken(user._id);
-    // const refreshToken = await signRefreshToken(user._id);
+    const data = {
+      user: {
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+        verifyEmailLink,
+      },
+    };
 
     return res.status(201).json(
-      response<null>({
-        data: null,
+      response<any>({
+        data,
         success: true,
         error: false,
-        message: 'Success',
+        message: `Auth Signup is success. An Email with Verification link has been sent to your account ${user.email} Please Verify Your Email first or use the email verification lik which is been send with the response body to verfiy your email`,
         status: 201,
       })
     );
@@ -92,17 +122,61 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
       return res.status(authFailedResponse.status).json(response<null>(authFailedResponse));
     }
 
-    // check user is verified or not
-    if (!user.isVerified || user.status !== 'active') {
-      // Again send verification email
-      //  todo
+    const payload = {
+      userId: user._id,
+    };
+    const accessTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
+    const accessTokenOptions: SignOptions = {
+      expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+      issuer: environmentConfig.JWT_ISSUER,
+      audience: String(user._id),
+    };
+
+    const refreshTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
+    const refreshTokenJwtOptions: SignOptions = {
+      expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+      issuer: environmentConfig.JWT_ISSUER,
+      audience: String(user._id),
+    };
+
+    let token = await Token.findOne({ userId: user._id });
+
+    if (!token) {
+      token = await new Token({ userId: user._id });
+      token = await token.save();
     }
 
-    // TOdo
-    // send mail for email verification
+    const generatedAccessToken = await token.generateToken(payload, accessTokenSecretKey, accessTokenOptions);
+    const generatedRefreshToken = await token.generateToken(payload, refreshTokenSecretKey, refreshTokenJwtOptions);
 
-    // Send back only the user, refreshToken and accessToken (dont send the password)
-    const token = user.createJWT();
+    // Save the updated token
+    token.refreshToken = generatedRefreshToken;
+    token.accessToken = generatedAccessToken;
+    token = await token.save();
+
+    // check user is verified or not
+    if (!user.isVerified || user.status !== 'active') {
+      const verifyEmailLink = `${environmentConfig.CLIENT_URL}/verify-email.html?id=${user._id}&token=${token.refreshToken}`;
+
+      // Again send verification email
+      sendEmailVerificationEmail(email, user.name, verifyEmailLink);
+
+      const responseData = {
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+        verifyEmailLink,
+      };
+
+      return res.status(401).json(
+        response<typeof responseData>({
+          data: responseData,
+          success: false,
+          error: true,
+          message: `Your Email has not been verified. An Email with Verification link has been sent to your account ${user.email} Please Verify Your Email first or use the email verification lik which is been send with the response to verfiy your email`,
+          status: 401,
+        })
+      );
+    }
 
     // Response data
     const data = {
@@ -112,22 +186,27 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
         name: user.name,
         role: user?.role,
         isVerified: user?.isVerified,
-        token,
         isDeleted: user?.isDeleted,
         status: user?.status,
+        accessToken: token.accessToken,
+        refreshToken: token.accessToken,
       },
     };
 
-    // send jwt token as kookie
-    res.cookie('authToken', token, {
+    // Set cookies
+    res.cookie('accessToken', token.accessToken, {
       httpOnly: true,
-      maxAge: 365 * 24 * 60 * 60 * 1000, // one year
+      maxAge: 24 * 60 * 60 * 1000, // one days
       secure: process.env.NODE_ENV === 'production',
     });
 
-    // TODO
-    // Set refreshToken' AND accessToken IN cookies
+    res.cookie('refreshToken', token.refreshToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      secure: process.env.NODE_ENV === 'production',
+    });
 
+    // Set refreshToken' AND accessToken IN cookies
     return res.status(200).json(
       response<typeof data>({
         data,

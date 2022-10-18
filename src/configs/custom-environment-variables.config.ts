@@ -19,6 +19,7 @@ export const environmentConfig = {
   REFRESH_TOKEN_SECRET_KEY: process.env.REFRESH_TOKEN_SECRET_KEY,
   ACCESS_TOKEN_KEY_EXPIRE_TIME: process.env.ACCESS_TOKEN_KEY_EXPIRE_TIME,
   REFRESH_TOKEN_KEY_EXPIRE_TIME: process.env.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+  JWT_ISSUER: process.env.JWT_ISSUER,
 };
 
 export default environmentConfig;
