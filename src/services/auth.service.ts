@@ -1,11 +1,13 @@
-import { NextFunction, Request, Response } from 'express';
-
+import { NextFunction, Request, RequestHandler, Response } from 'express';
+import createHttpError, { InternalServerError } from 'http-errors';
 import { SignOptions } from 'jsonwebtoken';
+
 import User from '@src/models/User.model';
 import Token from '@src/models/Token.model';
 import { response, sendEmailVerificationEmail } from '@src/utils';
 import { ResponseT } from '@src/interfaces';
 import { environmentConfig } from '@src/configs/custom-environment-variables.config';
+import { verifyRefreshToken } from '@src/middlewares';
 
 export const signupService = async (req: Request, res: Response<ResponseT<null>>, next: NextFunction) => {
   const { email, password, name, confirmPassword } = req.body;
@@ -48,12 +50,12 @@ export const signupService = async (req: Request, res: Response<ResponseT<null>>
 
     const accessTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
     const accessTokenOptions: SignOptions = {
-      expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+      expiresIn: environmentConfig.ACCESS_TOKEN_KEY_EXPIRE_TIME,
       issuer: environmentConfig.JWT_ISSUER,
       audience: String(user._id),
     };
 
-    const refreshTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
+    const refreshTokenSecretKey = environmentConfig.REFRESH_TOKEN_SECRET_KEY as string;
     const refreshTokenJwtOptions: SignOptions = {
       expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
       issuer: environmentConfig.JWT_ISSUER,
@@ -122,23 +124,6 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
       return res.status(authFailedResponse.status).json(response<null>(authFailedResponse));
     }
 
-    const payload = {
-      userId: user._id,
-    };
-    const accessTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
-    const accessTokenOptions: SignOptions = {
-      expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
-      issuer: environmentConfig.JWT_ISSUER,
-      audience: String(user._id),
-    };
-
-    const refreshTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
-    const refreshTokenJwtOptions: SignOptions = {
-      expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
-      issuer: environmentConfig.JWT_ISSUER,
-      audience: String(user._id),
-    };
-
     let token = await Token.findOne({ userId: user._id });
 
     if (!token) {
@@ -146,8 +131,28 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
       token = await token.save();
     }
 
-    const generatedAccessToken = await token.generateToken(payload, accessTokenSecretKey, accessTokenOptions);
-    const generatedRefreshToken = await token.generateToken(payload, refreshTokenSecretKey, refreshTokenJwtOptions);
+    const generatedAccessToken = await token.generateToken(
+      {
+        userId: user._id,
+      },
+      environmentConfig.ACCESS_TOKEN_SECRET_KEY,
+      {
+        expiresIn: environmentConfig.ACCESS_TOKEN_KEY_EXPIRE_TIME,
+        issuer: environmentConfig.JWT_ISSUER,
+        audience: String(user._id),
+      }
+    );
+    const generatedRefreshToken = await token.generateToken(
+      {
+        userId: user._id,
+      },
+      environmentConfig.REFRESH_TOKEN_SECRET_KEY,
+      {
+        expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+        issuer: environmentConfig.JWT_ISSUER,
+        audience: String(user._id),
+      }
+    );
 
     // Save the updated token
     token.refreshToken = generatedRefreshToken;
@@ -189,7 +194,7 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
         isDeleted: user?.isDeleted,
         status: user?.status,
         accessToken: token.accessToken,
-        refreshToken: token.accessToken,
+        refreshToken: token.refreshToken,
       },
     };
 
@@ -285,4 +290,86 @@ export const verifyEmailService = async (req: Request, res: Response, next: Next
   }
 };
 
-export default { signupService, loginService, verifyEmailService };
+export const refreshTokenService: RequestHandler = async (req, res, next) => {
+  const { refreshToken } = req.body;
+
+  try {
+    let token = await Token.findOne({
+      refreshToken,
+    });
+
+    if (!token) {
+      return next(new createHttpError.BadRequest());
+    }
+
+    const userId = await verifyRefreshToken(refreshToken);
+
+    if (!userId) {
+      return next(new createHttpError.BadRequest());
+    }
+
+    const generatedAccessToken = await token.generateToken(
+      {
+        userId,
+      },
+      environmentConfig.ACCESS_TOKEN_SECRET_KEY,
+      {
+        expiresIn: environmentConfig.ACCESS_TOKEN_KEY_EXPIRE_TIME,
+        issuer: environmentConfig.JWT_ISSUER,
+        audience: String(userId),
+      }
+    );
+    const generatedRefreshToken = await token.generateToken(
+      {
+        userId,
+      },
+      environmentConfig.REFRESH_TOKEN_SECRET_KEY,
+      {
+        expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+        issuer: environmentConfig.JWT_ISSUER,
+        audience: String(userId),
+      }
+    );
+
+    // Save the updated token
+    token.refreshToken = generatedRefreshToken;
+    token.accessToken = generatedAccessToken;
+    token = await token.save();
+
+    // Response data
+    const data = {
+      user: {
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+      },
+    };
+
+    // Set cookies
+    res.cookie('accessToken', token.accessToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // one days
+      secure: process.env.NODE_ENV === 'production',
+    });
+
+    res.cookie('refreshToken', token.refreshToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      secure: process.env.NODE_ENV === 'production',
+    });
+
+    // Set refreshToken' AND accessToken IN cookies
+    return res.status(200).json(
+      response<typeof data>({
+        data,
+        success: true,
+        error: false,
+        message: 'Auth logged in successful.',
+        status: 200,
+      })
+    );
+  } catch (error) {
+    return next(InternalServerError);
+  }
+};
+
+export default { signupService, loginService, verifyEmailService, refreshTokenService };

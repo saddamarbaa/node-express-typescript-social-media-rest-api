@@ -39,7 +39,7 @@ export const isAuth = (req: IAuthRequest, res: Response, next: NextFunction) => 
         );
       }
 
-      console.log('The Authorized User is ', decodedUser);
+      // console.log('The Authorized User is ', decodedUser);
       // Add user to the request
       req.user = decodedUser as IUser;
 

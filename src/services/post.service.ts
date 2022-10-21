@@ -139,6 +139,7 @@ export const getPostService = async (req: Request, res: Response, next: NextFunc
       })
     );
   } catch (error) {
+    console.log('error', error);
     return next(error);
   }
 };
