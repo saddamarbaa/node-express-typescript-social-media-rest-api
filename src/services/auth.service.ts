@@ -4,7 +4,7 @@ import { SignOptions } from 'jsonwebtoken';
 
 import User from '@src/models/User.model';
 import Token from '@src/models/Token.model';
-import { response, sendEmailVerificationEmail } from '@src/utils';
+import { response, sendEmailVerificationEmail, sendResetPasswordEmail } from '@src/utils';
 import { ResponseT } from '@src/interfaces';
 import { environmentConfig } from '@src/configs/custom-environment-variables.config';
 import { verifyRefreshToken } from '@src/middlewares';
@@ -345,4 +345,73 @@ export const refreshTokenService: RequestHandler = async (req, res, next) => {
   }
 };
 
-export default { signupService, loginService, verifyEmailService, refreshTokenService };
+export const sendForgotPasswordMailService: RequestHandler = async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      const message = `The email address ${email} is not associated with any account. Double-check your email address and try again.`;
+      return next(createHttpError(401, message));
+    }
+
+    let token = await Token.findOne({ userId: user._id });
+
+    if (!token) {
+      token = await new Token({ userId: user._id });
+      token = await token.save();
+    }
+
+    const generatedAccessToken = await token.generateToken(
+      {
+        userId: user._id,
+      },
+      environmentConfig.ACCESS_TOKEN_SECRET_KEY,
+      {
+        expiresIn: environmentConfig.ACCESS_TOKEN_KEY_EXPIRE_TIME,
+        issuer: environmentConfig.JWT_ISSUER,
+        audience: String(user._id),
+      }
+    );
+    const generatedRefreshToken = await token.generateToken(
+      {
+        userId: user._id,
+      },
+      environmentConfig.REFRESH_TOKEN_SECRET_KEY,
+      {
+        expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+        issuer: environmentConfig.JWT_ISSUER,
+        audience: String(user._id),
+      }
+    );
+
+    // Save the updated token
+    token.refreshToken = generatedRefreshToken;
+    token.accessToken = generatedAccessToken;
+    token = await token.save();
+
+    const passwordResetEmailLink = `${environmentConfig.CLIENT_URL}/reset-password.html?id=${user._id}&token=${token.refreshToken}`;
+
+    // password Reset Email
+    sendResetPasswordEmail(email, user.name, passwordResetEmailLink);
+
+    const data = {
+      user: {
+        resetPasswordToken: passwordResetEmailLink,
+      },
+    };
+
+    return res.status(200).json(
+      response<typeof data>({
+        data,
+        success: true,
+        error: false,
+        message: `Auth success. An Email with Rest password link has been sent to your account ${email}  please check to rest your password or use the the link which is been send with the response body to rest your password`,
+        status: 200,
+      })
+    );
+  } catch (error) {
+    return next(InternalServerError);
+  }
+};
+export default { signupService, loginService, verifyEmailService, refreshTokenService, sendForgotPasswordMailService };

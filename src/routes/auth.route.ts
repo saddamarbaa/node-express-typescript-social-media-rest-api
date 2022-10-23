@@ -1,9 +1,16 @@
 import express from 'express';
 
-import { signupController, loginController, verifyEmailController, refreshTokenController } from '@src/controllers';
+import {
+  signupController,
+  loginController,
+  verifyEmailController,
+  refreshTokenController,
+  sendForgotPasswordMailController,
+} from '@src/controllers';
 import {
   loginUserValidation,
   refreshTokenValidation,
+  sendVerificationMailValidation,
   signupUserValidation,
   verifyUserMailValidation,
 } from '@src/middlewares';
@@ -14,5 +21,6 @@ router.post('/signup', signupUserValidation, signupController);
 router.post('/login', loginUserValidation, loginController);
 router.get('/verify-email/:userId/:token', verifyUserMailValidation, verifyEmailController);
 router.post('/refresh-token', refreshTokenValidation, refreshTokenController);
+router.post('/forget-password', sendVerificationMailValidation, sendForgotPasswordMailController);
 
 export = router;
