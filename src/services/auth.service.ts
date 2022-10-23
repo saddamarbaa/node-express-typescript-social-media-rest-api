@@ -10,10 +10,10 @@ import { environmentConfig } from '@src/configs/custom-environment-variables.con
 import { verifyRefreshToken } from '@src/middlewares';
 
 export const signupService = async (req: Request, res: Response<ResponseT<null>>, next: NextFunction) => {
-  const { email, password, name, confirmPassword } = req.body;
+  const { email, password, name, confirmPassword, acceptTerms } = req.body;
   const role = environmentConfig?.ADMIN_EMAIL?.includes(`${email}`) ? 'admin' : 'user';
   // const status = environmentConfig?.ADMIN_EMAIL?.includes(`${email}`) ? 'active' : 'pending';
-  const acceptTerms = !!environmentConfig?.ADMIN_EMAIL?.includes(`${email}`);
+
   // const isVerified = !!environmentConfig?.ADMIN_EMAIL?.includes(`${email}`);
 
   const newUser = new User({
@@ -23,22 +23,14 @@ export const signupService = async (req: Request, res: Response<ResponseT<null>>
     confirmPassword,
     role,
     // status,
-    acceptTerms,
+    acceptTerms: acceptTerms || !!environmentConfig?.ADMIN_EMAIL?.includes(`${email}`),
     // isVerified,
   });
 
   try {
     const isEmailExit = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
     if (isEmailExit) {
-      return res.status(422).json(
-        response<null>({
-          data: null,
-          success: false,
-          error: true,
-          message: `E-Mail address ${email} is already exists, please pick a different one.`,
-          status: 422,
-        })
-      );
+      return next(createHttpError(422, `E-Mail address ${email} is already exists, please pick a different one.`));
     }
 
     const user = await newUser.save();
@@ -94,7 +86,7 @@ export const signupService = async (req: Request, res: Response<ResponseT<null>>
       })
     );
   } catch (error) {
-    return next(error);
+    return next(InternalServerError);
   }
 };
 
@@ -104,24 +96,16 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
   try {
     const user = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
 
-    const authFailedResponse = response<null>({
-      data: null,
-      success: false,
-      error: true,
-      message: 'Auth Failed (Invalid Credentials)',
-      status: 401,
-    });
-
     // 401 Unauthorized
     if (!user) {
-      return res.status(authFailedResponse.status).json(response<null>(authFailedResponse));
+      return next(createHttpError(404, 'Auth Failed (Invalid Credentials)'));
     }
 
     // Compare password
     const isPasswordCorrect = await user.comparePassword(password);
 
     if (!isPasswordCorrect) {
-      return res.status(authFailedResponse.status).json(response<null>(authFailedResponse));
+      return next(createHttpError(401, 'Auth Failed (Invalid Credentials)'));
     }
 
     let token = await Token.findOne({ userId: user._id });
@@ -222,7 +206,7 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
       })
     );
   } catch (error) {
-    return next(error);
+    return next(InternalServerError);
   }
 };
 
@@ -230,14 +214,11 @@ export const verifyEmailService = async (req: Request, res: Response, next: Next
   try {
     const user = await User.findById(req.params.userId);
     if (!user)
-      return res.status(400).send(
-        response<null>({
-          data: null,
-          success: false,
-          error: true,
-          message: `Email verification token is invalid or has expired. Please click on resend for verify your Email.`,
-          status: 400,
-        })
+      return next(
+        createHttpError(
+          400,
+          'Email verification token is invalid or has expired. Please click on resend for verify your Email.'
+        )
       );
 
     // user is already verified
@@ -259,15 +240,7 @@ export const verifyEmailService = async (req: Request, res: Response, next: Next
     });
 
     if (!emailVerificationToken) {
-      return res.status(400).send(
-        response<null>({
-          data: null,
-          success: false,
-          error: true,
-          message: `Email verification token is invalid or has expired.`,
-          status: 400,
-        })
-      );
+      return next(createHttpError(400, 'Email verification token is invalid or has expired.'));
     }
     // Verfiy the user
     user.isVerified = true;
@@ -286,7 +259,7 @@ export const verifyEmailService = async (req: Request, res: Response, next: Next
       })
     );
   } catch (error) {
-    return next(error);
+    return next(InternalServerError);
   }
 };
 

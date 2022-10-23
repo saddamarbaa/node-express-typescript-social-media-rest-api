@@ -72,7 +72,6 @@ TokenSchema.methods.generateToken = function (
   secret: string,
   signOptions: any
 ): Promise<string> {
-  // return jwt.sign(payload, secret, options);
   return new Promise(function (resolve, reject) {
     jwt.sign(payload, secret, signOptions, (err: Error | null, encoded: string | undefined) => {
       if (err === null && encoded !== undefined) {

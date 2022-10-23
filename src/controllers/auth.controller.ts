@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 
-import { signupService, loginService, verifyEmailService } from '@src/services';
+import { signupService, loginService, verifyEmailService, refreshTokenService } from '@src/services';
 
 export const signupController = (req: Request, res: Response, next: NextFunction) => signupService(req, res, next);
 
@@ -9,4 +9,6 @@ export const loginController = (req: Request, res: Response, next: NextFunction)
 export const verifyEmailController = (req: Request, res: Response, next: NextFunction) =>
   verifyEmailService(req, res, next);
 
-export default { signupController, loginController };
+export const refreshTokenController: RequestHandler = async (req, res, next) => refreshTokenService(req, res, next);
+
+export default { signupController, loginController, verifyEmailController, refreshTokenController };
