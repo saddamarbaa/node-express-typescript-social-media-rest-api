@@ -6,10 +6,12 @@ import {
   verifyEmailController,
   refreshTokenController,
   sendForgotPasswordMailController,
+  resetPasswordController,
 } from '@src/controllers';
 import {
   loginUserValidation,
   refreshTokenValidation,
+  resetPasswordValidation,
   sendVerificationMailValidation,
   signupUserValidation,
   verifyUserMailValidation,
@@ -22,5 +24,6 @@ router.post('/login', loginUserValidation, loginController);
 router.get('/verify-email/:userId/:token', verifyUserMailValidation, verifyEmailController);
 router.post('/refresh-token', refreshTokenValidation, refreshTokenController);
 router.post('/forget-password', sendVerificationMailValidation, sendForgotPasswordMailController);
+router.post('/reset-password/:userId/:token', resetPasswordValidation, resetPasswordController);
 
 export = router;

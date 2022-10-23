@@ -6,6 +6,7 @@ import {
   verifyEmailService,
   refreshTokenService,
   sendForgotPasswordMailService,
+  resetPasswordService,
 } from '@src/services';
 
 export const signupController = (req: Request, res: Response, next: NextFunction) => signupService(req, res, next);
@@ -20,10 +21,13 @@ export const refreshTokenController: RequestHandler = async (req, res, next) => 
 export const sendForgotPasswordMailController: RequestHandler = async (req, res, next) =>
   sendForgotPasswordMailService(req, res, next);
 
+export const resetPasswordController: RequestHandler = async (req, res, next) => resetPasswordService(req, res, next);
+
 export default {
   signupController,
   loginController,
   verifyEmailController,
   refreshTokenController,
   sendForgotPasswordMailController,
+  resetPasswordController,
 };

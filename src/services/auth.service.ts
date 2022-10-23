@@ -4,7 +4,12 @@ import { SignOptions } from 'jsonwebtoken';
 
 import User from '@src/models/User.model';
 import Token from '@src/models/Token.model';
-import { response, sendEmailVerificationEmail, sendResetPasswordEmail } from '@src/utils';
+import {
+  response,
+  sendConfirmResetPasswordEmail,
+  sendEmailVerificationEmail,
+  sendResetPasswordEmail,
+} from '@src/utils';
 import { ResponseT } from '@src/interfaces';
 import { environmentConfig } from '@src/configs/custom-environment-variables.config';
 import { verifyRefreshToken } from '@src/middlewares';
@@ -379,7 +384,7 @@ export const sendForgotPasswordMailService: RequestHandler = async (req, res, ne
       },
       environmentConfig.REFRESH_TOKEN_SECRET_KEY,
       {
-        expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+        expiresIn: environmentConfig.REST_PASSWORD_LINK_EXPIRE_TIME,
         issuer: environmentConfig.JWT_ISSUER,
         audience: String(user._id),
       }
@@ -414,4 +419,56 @@ export const sendForgotPasswordMailService: RequestHandler = async (req, res, ne
     return next(InternalServerError);
   }
 };
-export default { signupService, loginService, verifyEmailService, refreshTokenService, sendForgotPasswordMailService };
+
+export const resetPasswordService: RequestHandler = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return next(createHttpError(401, `Password reset token is invalid or has expired.`));
+
+    const token = await Token.findOne({ userId: req.params.userId, refreshToken: req.params.token });
+
+    if (!token) return next(createHttpError(401, 'Password reset token is invalid or has expired.'));
+
+    const userId = await verifyRefreshToken(req.params.token);
+
+    if (!userId) {
+      return next(new createHttpError.BadRequest());
+    }
+
+    user.password = req.body.password;
+    user.confirmPassword = req.body.confirmPassword;
+    await user.save();
+    await token.delete();
+
+    const confirmResetPasswordEmailLink = `${environmentConfig.CLIENT_URL}/login.html`;
+
+    sendConfirmResetPasswordEmail(user.email, user.name, confirmResetPasswordEmailLink);
+
+    const data = {
+      user: {
+        loginLink: confirmResetPasswordEmailLink,
+      },
+    };
+
+    return res.status(200).json(
+      response<typeof data>({
+        data,
+        success: true,
+        error: false,
+        message: `Your password has been Password Reset Successfully updated please login`,
+        status: 200,
+      })
+    );
+  } catch (error) {
+    return next(InternalServerError);
+  }
+};
+
+export default {
+  signupService,
+  loginService,
+  verifyEmailService,
+  refreshTokenService,
+  sendForgotPasswordMailService,
+  resetPasswordService,
+};
