@@ -41,6 +41,9 @@ export const userSchema = {
   refreshToken: Joi.object({
     refreshToken: Joi.string().min(3).max(300).required(),
   }),
+  sendVerificationMail: Joi.object({
+    email: Joi.string().email().required(),
+  }),
 };
 
 export default userSchema;
