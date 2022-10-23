@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Schema, Document, model, models } from 'mongoose';
-import jwt, { SignOptions, VerifyErrors, VerifyOptions } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import validator from 'validator';
 
 import { environmentConfig } from '@src/configs/custom-environment-variables.config';
@@ -28,13 +28,14 @@ const UserSchema: Schema<IUserDocument> = new Schema(
       trim: true,
       lowercase: true,
       required: [false, 'Please provide first name'],
-      maxLength: [3, "Name can't be smaller than 2 characters"],
+      minLength: [3, "Name can't be smaller than 3 characters"],
+      maxLength: [15, "Name can't be greater than 15 characters"],
     },
     lastName: {
       type: String,
       required: [false, 'Please provide last name'],
-      maxLength: 15,
-      minlength: 3,
+      minLength: [3, "Name can't be smaller than 3 characters"],
+      maxLength: [15, "Name can't be greater than 15 characters"],
       trim: true,
       lowercase: true,
     },

@@ -1,17 +1,19 @@
-import { NextFunction, Request, Response } from 'express';
-
+import { NextFunction, Request, RequestHandler, Response } from 'express';
+import createHttpError, { InternalServerError } from 'http-errors';
 import { SignOptions } from 'jsonwebtoken';
+
 import User from '@src/models/User.model';
 import Token from '@src/models/Token.model';
 import { response, sendEmailVerificationEmail } from '@src/utils';
 import { ResponseT } from '@src/interfaces';
 import { environmentConfig } from '@src/configs/custom-environment-variables.config';
+import { verifyRefreshToken } from '@src/middlewares';
 
 export const signupService = async (req: Request, res: Response<ResponseT<null>>, next: NextFunction) => {
-  const { email, password, name, confirmPassword } = req.body;
+  const { email, password, name, confirmPassword, acceptTerms } = req.body;
   const role = environmentConfig?.ADMIN_EMAIL?.includes(`${email}`) ? 'admin' : 'user';
   // const status = environmentConfig?.ADMIN_EMAIL?.includes(`${email}`) ? 'active' : 'pending';
-  const acceptTerms = !!environmentConfig?.ADMIN_EMAIL?.includes(`${email}`);
+
   // const isVerified = !!environmentConfig?.ADMIN_EMAIL?.includes(`${email}`);
 
   const newUser = new User({
@@ -21,22 +23,14 @@ export const signupService = async (req: Request, res: Response<ResponseT<null>>
     confirmPassword,
     role,
     // status,
-    acceptTerms,
+    acceptTerms: acceptTerms || !!environmentConfig?.ADMIN_EMAIL?.includes(`${email}`),
     // isVerified,
   });
 
   try {
     const isEmailExit = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
     if (isEmailExit) {
-      return res.status(422).json(
-        response<null>({
-          data: null,
-          success: false,
-          error: true,
-          message: `E-Mail address ${email} is already exists, please pick a different one.`,
-          status: 422,
-        })
-      );
+      return next(createHttpError(422, `E-Mail address ${email} is already exists, please pick a different one.`));
     }
 
     const user = await newUser.save();
@@ -48,12 +42,12 @@ export const signupService = async (req: Request, res: Response<ResponseT<null>>
 
     const accessTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
     const accessTokenOptions: SignOptions = {
-      expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+      expiresIn: environmentConfig.ACCESS_TOKEN_KEY_EXPIRE_TIME,
       issuer: environmentConfig.JWT_ISSUER,
       audience: String(user._id),
     };
 
-    const refreshTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
+    const refreshTokenSecretKey = environmentConfig.REFRESH_TOKEN_SECRET_KEY as string;
     const refreshTokenJwtOptions: SignOptions = {
       expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
       issuer: environmentConfig.JWT_ISSUER,
@@ -92,7 +86,7 @@ export const signupService = async (req: Request, res: Response<ResponseT<null>>
       })
     );
   } catch (error) {
-    return next(error);
+    return next(InternalServerError);
   }
 };
 
@@ -102,42 +96,17 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
   try {
     const user = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
 
-    const authFailedResponse = response<null>({
-      data: null,
-      success: false,
-      error: true,
-      message: 'Auth Failed (Invalid Credentials)',
-      status: 401,
-    });
-
     // 401 Unauthorized
     if (!user) {
-      return res.status(authFailedResponse.status).json(response<null>(authFailedResponse));
+      return next(createHttpError(404, 'Auth Failed (Invalid Credentials)'));
     }
 
     // Compare password
     const isPasswordCorrect = await user.comparePassword(password);
 
     if (!isPasswordCorrect) {
-      return res.status(authFailedResponse.status).json(response<null>(authFailedResponse));
+      return next(createHttpError(401, 'Auth Failed (Invalid Credentials)'));
     }
-
-    const payload = {
-      userId: user._id,
-    };
-    const accessTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
-    const accessTokenOptions: SignOptions = {
-      expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
-      issuer: environmentConfig.JWT_ISSUER,
-      audience: String(user._id),
-    };
-
-    const refreshTokenSecretKey = environmentConfig.ACCESS_TOKEN_SECRET_KEY as string;
-    const refreshTokenJwtOptions: SignOptions = {
-      expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
-      issuer: environmentConfig.JWT_ISSUER,
-      audience: String(user._id),
-    };
 
     let token = await Token.findOne({ userId: user._id });
 
@@ -146,8 +115,28 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
       token = await token.save();
     }
 
-    const generatedAccessToken = await token.generateToken(payload, accessTokenSecretKey, accessTokenOptions);
-    const generatedRefreshToken = await token.generateToken(payload, refreshTokenSecretKey, refreshTokenJwtOptions);
+    const generatedAccessToken = await token.generateToken(
+      {
+        userId: user._id,
+      },
+      environmentConfig.ACCESS_TOKEN_SECRET_KEY,
+      {
+        expiresIn: environmentConfig.ACCESS_TOKEN_KEY_EXPIRE_TIME,
+        issuer: environmentConfig.JWT_ISSUER,
+        audience: String(user._id),
+      }
+    );
+    const generatedRefreshToken = await token.generateToken(
+      {
+        userId: user._id,
+      },
+      environmentConfig.REFRESH_TOKEN_SECRET_KEY,
+      {
+        expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+        issuer: environmentConfig.JWT_ISSUER,
+        audience: String(user._id),
+      }
+    );
 
     // Save the updated token
     token.refreshToken = generatedRefreshToken;
@@ -189,7 +178,7 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
         isDeleted: user?.isDeleted,
         status: user?.status,
         accessToken: token.accessToken,
-        refreshToken: token.accessToken,
+        refreshToken: token.refreshToken,
       },
     };
 
@@ -217,7 +206,7 @@ export const loginService = async (req: Request, res: Response, next: NextFuncti
       })
     );
   } catch (error) {
-    return next(error);
+    return next(InternalServerError);
   }
 };
 
@@ -225,14 +214,11 @@ export const verifyEmailService = async (req: Request, res: Response, next: Next
   try {
     const user = await User.findById(req.params.userId);
     if (!user)
-      return res.status(400).send(
-        response<null>({
-          data: null,
-          success: false,
-          error: true,
-          message: `Email verification token is invalid or has expired. Please click on resend for verify your Email.`,
-          status: 400,
-        })
+      return next(
+        createHttpError(
+          400,
+          'Email verification token is invalid or has expired. Please click on resend for verify your Email.'
+        )
       );
 
     // user is already verified
@@ -254,15 +240,7 @@ export const verifyEmailService = async (req: Request, res: Response, next: Next
     });
 
     if (!emailVerificationToken) {
-      return res.status(400).send(
-        response<null>({
-          data: null,
-          success: false,
-          error: true,
-          message: `Email verification token is invalid or has expired.`,
-          status: 400,
-        })
-      );
+      return next(createHttpError(400, 'Email verification token is invalid or has expired.'));
     }
     // Verfiy the user
     user.isVerified = true;
@@ -281,8 +259,90 @@ export const verifyEmailService = async (req: Request, res: Response, next: Next
       })
     );
   } catch (error) {
-    return next(error);
+    return next(InternalServerError);
   }
 };
 
-export default { signupService, loginService, verifyEmailService };
+export const refreshTokenService: RequestHandler = async (req, res, next) => {
+  const { refreshToken } = req.body;
+
+  try {
+    let token = await Token.findOne({
+      refreshToken,
+    });
+
+    if (!token) {
+      return next(new createHttpError.BadRequest());
+    }
+
+    const userId = await verifyRefreshToken(refreshToken);
+
+    if (!userId) {
+      return next(new createHttpError.BadRequest());
+    }
+
+    const generatedAccessToken = await token.generateToken(
+      {
+        userId,
+      },
+      environmentConfig.ACCESS_TOKEN_SECRET_KEY,
+      {
+        expiresIn: environmentConfig.ACCESS_TOKEN_KEY_EXPIRE_TIME,
+        issuer: environmentConfig.JWT_ISSUER,
+        audience: String(userId),
+      }
+    );
+    const generatedRefreshToken = await token.generateToken(
+      {
+        userId,
+      },
+      environmentConfig.REFRESH_TOKEN_SECRET_KEY,
+      {
+        expiresIn: environmentConfig.REFRESH_TOKEN_KEY_EXPIRE_TIME,
+        issuer: environmentConfig.JWT_ISSUER,
+        audience: String(userId),
+      }
+    );
+
+    // Save the updated token
+    token.refreshToken = generatedRefreshToken;
+    token.accessToken = generatedAccessToken;
+    token = await token.save();
+
+    // Response data
+    const data = {
+      user: {
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+      },
+    };
+
+    // Set cookies
+    res.cookie('accessToken', token.accessToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // one days
+      secure: process.env.NODE_ENV === 'production',
+    });
+
+    res.cookie('refreshToken', token.refreshToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      secure: process.env.NODE_ENV === 'production',
+    });
+
+    // Set refreshToken' AND accessToken IN cookies
+    return res.status(200).json(
+      response<typeof data>({
+        data,
+        success: true,
+        error: false,
+        message: 'Auth logged in successful.',
+        status: 200,
+      })
+    );
+  } catch (error) {
+    return next(InternalServerError);
+  }
+};
+
+export default { signupService, loginService, verifyEmailService, refreshTokenService };

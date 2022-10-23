@@ -9,7 +9,6 @@ export const isAdmin = async (req: IAdminRequest, res: Response, next: NextFunct
   try {
     const user = await User.findOne({ _id: req?.user?.userId });
 
-    console.log(' user ', user);
     const adminUser =
       user && user.role === environmentConfig.ADMIN_ROLE && environmentConfig?.ADMIN_EMAIL?.includes(`${user?.email}`);
 
@@ -25,7 +24,7 @@ export const isAdmin = async (req: IAdminRequest, res: Response, next: NextFunct
       );
     }
 
-    console.log('The Authorized Admin is ', user);
+    // console.log('The Authorized Admin is ', user);
     req.user = user as IUser;
     next();
   } catch (error) {

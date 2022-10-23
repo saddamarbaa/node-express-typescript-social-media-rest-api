@@ -46,3 +46,10 @@ export interface IAuthRequest extends Request {
   cookies: { authToken?: string };
   user?: IUser;
 }
+
+export interface IAuthRefreshTokenRequest extends Request {
+  headers: { authorization?: string; Authorization?: string };
+  cookies: { authToken?: string };
+  accessToken?: string;
+  refreshToken?: string;
+}

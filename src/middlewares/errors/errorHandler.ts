@@ -1,6 +1,5 @@
 import { ErrorRequestHandler, NextFunction, Response } from 'express';
-
-import ErrorResponse from '../../interfaces/ErrorResponse';
+import { ErrorResponse } from '@src/interfaces';
 
 export const errorHandlerMiddleware: ErrorRequestHandler = (
   error,
@@ -9,7 +8,7 @@ export const errorHandlerMiddleware: ErrorRequestHandler = (
   // eslint-disable-next-line no-unused-vars
   next: NextFunction
 ) => {
-  const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
+  const statusCode = error.statusCode || 500;
   res?.status(statusCode);
   res?.status(statusCode).send({
     data: null,
