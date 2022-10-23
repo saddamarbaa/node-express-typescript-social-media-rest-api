@@ -8,7 +8,7 @@ export const userSchema = {
   signupUser: Joi.object({
     name: Joi.string().min(3).max(15).required(),
     email: Joi.string().email().required(),
-    password: Joi.string().required(),
+    password: Joi.string().min(6).required(),
     confirmPassword: Joi.string().required().valid(Joi.ref('password')),
     firstName: Joi.string().min(3).max(15),
     lastName: Joi.string().min(3).max(15),
@@ -43,6 +43,12 @@ export const userSchema = {
   }),
   sendVerificationMail: Joi.object({
     email: Joi.string().email().required(),
+  }),
+  resetPassword: Joi.object({
+    token: Joi.string().min(3).max(300).required(),
+    userId: vaildObjectId().required(),
+    password: Joi.string().min(6).required(),
+    confirmPassword: Joi.string().required().valid(Joi.ref('password')),
   }),
 };
 
