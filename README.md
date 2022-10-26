@@ -1,6 +1,8 @@
 # open-source-blog-api
 
-Free open source blog Rest API built with Nodejs, Express, and MongoDB that contain complete user authentication with JWT, role based authorization with all CRUD operations and image upload
+Free Open source REST API built with | TypeScript + Nodejs + Express + Mongodb  ⚡️ Made with developer experience first Prettier + ESLint + VSCode setup.
+
+> + C.R.U.D, Filter, Paginate, Sort, image upload, and Search API
 
 # Table of contents
 
@@ -22,16 +24,19 @@ Free open source blog Rest API built with Nodejs, Express, and MongoDB that cont
 
 # Technologies
 
+- TypeScript
 - Node.js
 - Express
 - MongoDB
 - JSON Web Token (JWT)
 - bcryptjs
+- jest
+- supertest
 - Heroku Hosting
 
 # Demo
 
-### <a href="https://blog-post-api-sadam.herokuapp.com/">LIVE API Demo</a>
+### <a href="https://blog-post-api-sadam.herokuapp.com/api/v1/posts">LIVE API Demo</a>
 
 ### <a href="https://github.com/saddamarbaa/blog-post-front-end-vanillaJS">Front-End REPO</a>
 
@@ -48,8 +53,14 @@ Free open source blog Rest API built with Nodejs, Express, and MongoDB that cont
 - Complete user authentication
 - Users can sign in
 - Users can sign out
+- Users can verify email
+- Users can Change Password
 - View all post
 - View post detail
+- Filter posts by category
+- Search for posts
+- Posts pagination
+- Limit posts
 
 ##### (Admin)
 
@@ -57,6 +68,10 @@ Free open source blog Rest API built with Nodejs, Express, and MongoDB that cont
 - Add post
 - Update post
 - Delete post
+- Add Users (todo)
+- Update Users  (todo)
+- Delete Users 
+- Update User Role  (todo)
 
 # Contributing
 
@@ -127,7 +142,7 @@ Project is: in progress I'm working on it in my free time
 
 ## My Blog Software Requirements
 
-https://docs.google.com/document/d/1lZvacY90Yo19QcnJxRJyy1AAZkTi0Vi5qXHTtptqAiU/edit#heading=h.o5cllxjlz2l1
+https://docs.google.com/document/d/1lZvacY90Yo19QcnJxRJyy1AAZkTi0Vi5qXHTtptqAiU/edit
 
 ![image](https://user-images.githubusercontent.com/51326421/111891042-f857f580-8a21-11eb-8bb9-310f0c666f91.png)
 
@@ -151,20 +166,56 @@ https://app.diagrams.net/#G1Wo8rd6DVJUyCwp7aC6kLpvMkBM3Mgh8l
 
 ## responsive on large screens(Home Page)
 
-![image](https://user-images.githubusercontent.com/51326421/117005056-01baca00-ad11-11eb-919d-37701ad65731.png)
+![image](https://user-images.githubusercontent.com/51326421/198089229-140a67d9-5cbc-42ea-b871-c84437bbebbe.png)
+
 
 ## responsive on mobile and tablet screens
 
-![image](https://user-images.githubusercontent.com/51326421/117004584-6aee0d80-ad10-11eb-80c9-2fdffdbd995a.png)
+![image](https://user-images.githubusercontent.com/51326421/198090336-7f9db2bf-6f5f-4c77-84ea-74025d027e55.png)
 
-## (post page)
 
-![image](https://user-images.githubusercontent.com/51326421/117005580-9e7d6780-ad11-11eb-90e4-864b658276d3.png)
+## post detail page
 
-## (Login Page)
+![image](https://user-images.githubusercontent.com/51326421/198090667-46907f31-58d1-44d8-a995-bea487ec9458.png)
 
-![image](https://user-images.githubusercontent.com/51326421/117006629-df29b080-ad12-11eb-9999-504d042cd81d.png)
+
+## Edit new post page
+![image](https://user-images.githubusercontent.com/51326421/198096430-5c5928b0-f39d-44c0-ad80-ab887615a743.png)
+
+
+## Edit post page
+
+![image](https://user-images.githubusercontent.com/51326421/198090907-759c57f7-c3ca-4d9e-bdd7-5f57bfcb57ac.png)
+
+
+## Login Page
+
+![image](https://user-images.githubusercontent.com/51326421/198091036-5306633d-60da-4c9b-8457-ef2e54c5ba0b.png)
+
+
+![image](https://user-images.githubusercontent.com/51326421/198091134-4582d1b6-33ed-403f-9f33-2544ee9372e7.png)
+
+![image](https://user-images.githubusercontent.com/51326421/198091226-a97c21f4-7661-4614-a6ca-e7b98aacf068.png)
+
+
 
 ## Register page
 
-![image](https://user-images.githubusercontent.com/51326421/117006719-f9fc2500-ad12-11eb-8746-bf5cbb8aec14.png)
+![image](https://user-images.githubusercontent.com/51326421/198091354-d8d03db0-97c1-4315-8a43-e8fb6351b230.png)
+
+
+![image](https://user-images.githubusercontent.com/51326421/198091554-d18d0adf-2a79-42cb-8d83-33920e2ba3d3.png)
+
+
+## Forgot password page
+
+
+![image](https://user-images.githubusercontent.com/51326421/198091856-c917f9b5-17a8-4aa6-b91e-f1636cfee361.png)
+
+
+![image](https://user-images.githubusercontent.com/51326421/198092467-0e393c59-fb00-48ad-9c93-55b116794f1d.png)
+
+
+## Reset password page
+
+![image](https://user-images.githubusercontent.com/51326421/198092583-0437999c-dc3e-4a5a-ac47-7f1eac4bba8d.png)
