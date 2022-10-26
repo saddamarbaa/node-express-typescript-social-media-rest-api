@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "nodemon": "nodemon",
-    "start": "ts-node -r ts-node/register/transpile-only -r tsconfig-paths/register ./src/index.ts",
+    "startlocal": "ts-node -r ts-node/register/transpile-only -r tsconfig-paths/register ./src/index.ts",
     "prod": "node -r ts-node/register/transpile-only -r tsconfig-paths/register ./dist/src/index.js",
     "dev": "nodemon -r ts-node/register/transpile-only -r tsconfig-paths/register ./src/index.ts",
     "build": "tsc -p tsconfig.prod.json",
@@ -18,7 +18,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test-all": "npm run check-format && npm run check-lint && npm run check-types && npm run test",
-    "start2": "node dist/index.js",
+    "start": "node dist/index.js",
     "postinstall": "tsc",
     "watch-node": "nodemon dist/index.js",
     "watch-ts": "tsc -w",
