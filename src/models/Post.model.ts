@@ -7,13 +7,13 @@ export const PostSchema: Schema<Post> = new Schema(
     title: {
       type: String,
       trim: true,
-      lowercase: true,
+      // lowercase: true,
       required: [true, 'Please provide title'],
     },
     content: {
       type: String,
       trim: true,
-      lowercase: true,
+      // lowercase: true,
       required: [true, 'Please provide post description'],
     },
     postImage: { type: String, required: true },
