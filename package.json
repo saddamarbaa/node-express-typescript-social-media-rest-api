@@ -5,7 +5,6 @@
   "main": "src/index.ts",
   "scripts": {
     "nodemon": "nodemon",
-    "startlocal": "ts-node -r ts-node/register/transpile-only -r tsconfig-paths/register ./src/index.ts",
     "prod": "node -r ts-node/register/transpile-only -r tsconfig-paths/register ./dist/src/index.js",
     "dev": "nodemon -r ts-node/register/transpile-only -r tsconfig-paths/register ./src/index.ts",
     "build": "tsc -p tsconfig.prod.json",
