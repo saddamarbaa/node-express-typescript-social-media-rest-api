@@ -17,7 +17,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test-all": "npm run check-format && npm run check-lint && npm run check-types && npm run test",
-    "start": "node -r ts-node/register/transpile-only -r tsconfig-paths/register ./dist/src/index.js"
+    "start": "node -r ts-node/register/transpile-only -r tsconfig-paths/register ./dist/src/index.js",
+    "postinstall": "tsc"
   },
   "engines": {
     "node": "v14.17.0"

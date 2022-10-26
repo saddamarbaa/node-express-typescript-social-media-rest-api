@@ -9,8 +9,8 @@ const start = async () => {
 
     console.log('MongoDB database connection established successfully to... ');
 
-    app?.listen(environmentConfig.PORT, () => {
-      console.log(`Listening: http://localhost:${environmentConfig.PORT}`);
+    app?.listen(process.env.PORT || 3000, () => {
+      console.log(`Listening: http://localhost:${process.env.PORT || 3000}`);
     });
   } catch (error) {
     console.log('MongoDB connection error. Please make sure MongoDB is running: ');
