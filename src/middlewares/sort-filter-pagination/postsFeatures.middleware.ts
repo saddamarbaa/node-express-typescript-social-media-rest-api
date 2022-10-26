@@ -56,6 +56,10 @@ export const postsPaginationMiddleware = () => {
         filter.$or = [{ category: 'sports' }];
       } else if (req.query.category.toLowerCase() === 'coding') {
         filter.$or = [{ category: 'coding' }];
+      } else if (req.query.category.toLowerCase() === 'typescript') {
+        filter.$or = [{ category: 'typescript' }];
+      } else if (req.query.category.toLowerCase() === 'nodejs') {
+        filter.$or = [{ category: 'nodejs' }];
       } else if (req.query.category.toLowerCase() === 'all') {
         filter = {};
       } else {

@@ -26,8 +26,8 @@ export const PostSchema: Schema<Post> = new Schema(
     category: {
       type: String,
       lowercase: true,
-      enum: ['coding', 'sports', 'all'],
-      default: 'coding',
+      enum: ['coding', 'sports', 'nodejs', 'all', 'typescript'],
+      default: 'all',
       trim: true,
     },
   },
