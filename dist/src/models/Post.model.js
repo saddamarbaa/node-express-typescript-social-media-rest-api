@@ -29,13 +29,11 @@ exports.PostSchema = new mongoose_1.Schema({
     title: {
         type: String,
         trim: true,
-        lowercase: true,
         required: [true, 'Please provide title'],
     },
     content: {
         type: String,
         trim: true,
-        lowercase: true,
         required: [true, 'Please provide post description'],
     },
     postImage: { type: String, required: true },

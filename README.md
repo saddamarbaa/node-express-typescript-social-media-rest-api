@@ -1,8 +1,8 @@
 # open-source-blog-api
 
-Free Open source REST API built with | TypeScript + Nodejs + Express + Mongodb  ⚡️ Made with developer experience first Prettier + ESLint + VSCode setup.
+Free Open source REST API built with | TypeScript + Nodejs + Express + Mongodb ⚡️ Made with developer experience first Prettier + ESLint + VSCode setup.
 
-> + C.R.U.D, Filter, Paginate, Sort, image upload, and Search API
+> - C.R.U.D, Filter, Paginate, Sort, image upload, and Search API
 
 # Table of contents
 
@@ -69,9 +69,9 @@ Free Open source REST API built with | TypeScript + Nodejs + Express + Mongodb  
 - Update post
 - Delete post
 - Add Users (todo)
-- Update Users  (todo)
-- Delete Users 
-- Update User Role  (todo)
+- Update Users (todo)
+- Delete Users
+- Update User Role (todo)
 
 # Contributing
 
@@ -168,53 +168,41 @@ https://app.diagrams.net/#G1Wo8rd6DVJUyCwp7aC6kLpvMkBM3Mgh8l
 
 ![image](https://user-images.githubusercontent.com/51326421/198089229-140a67d9-5cbc-42ea-b871-c84437bbebbe.png)
 
-
 ## responsive on mobile and tablet screens
 
 ![image](https://user-images.githubusercontent.com/51326421/198090336-7f9db2bf-6f5f-4c77-84ea-74025d027e55.png)
-
 
 ## post detail page
 
 ![image](https://user-images.githubusercontent.com/51326421/198090667-46907f31-58d1-44d8-a995-bea487ec9458.png)
 
-
 ## Edit new post page
-![image](https://user-images.githubusercontent.com/51326421/198096430-5c5928b0-f39d-44c0-ad80-ab887615a743.png)
 
+![image](https://user-images.githubusercontent.com/51326421/198096430-5c5928b0-f39d-44c0-ad80-ab887615a743.png)
 
 ## Edit post page
 
 ![image](https://user-images.githubusercontent.com/51326421/198090907-759c57f7-c3ca-4d9e-bdd7-5f57bfcb57ac.png)
 
-
 ## Login Page
 
 ![image](https://user-images.githubusercontent.com/51326421/198091036-5306633d-60da-4c9b-8457-ef2e54c5ba0b.png)
-
 
 ![image](https://user-images.githubusercontent.com/51326421/198091134-4582d1b6-33ed-403f-9f33-2544ee9372e7.png)
 
 ![image](https://user-images.githubusercontent.com/51326421/198091226-a97c21f4-7661-4614-a6ca-e7b98aacf068.png)
 
-
-
 ## Register page
 
 ![image](https://user-images.githubusercontent.com/51326421/198091354-d8d03db0-97c1-4315-8a43-e8fb6351b230.png)
 
-
 ![image](https://user-images.githubusercontent.com/51326421/198091554-d18d0adf-2a79-42cb-8d83-33920e2ba3d3.png)
-
 
 ## Forgot password page
 
-
 ![image](https://user-images.githubusercontent.com/51326421/198091856-c917f9b5-17a8-4aa6-b91e-f1636cfee361.png)
 
-
 ![image](https://user-images.githubusercontent.com/51326421/198092467-0e393c59-fb00-48ad-9c93-55b116794f1d.png)
-
 
 ## Reset password page
 

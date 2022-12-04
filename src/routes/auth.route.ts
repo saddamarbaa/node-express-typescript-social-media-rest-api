@@ -7,6 +7,7 @@ import {
   refreshTokenController,
   sendForgotPasswordMailController,
   resetPasswordController,
+  logoutController,
 } from '@src/controllers';
 import {
   loginUserValidation,
@@ -21,6 +22,7 @@ const router = express.Router();
 
 router.post('/signup', signupUserValidation, signupController);
 router.post('/login', loginUserValidation, loginController);
+router.post('/logout', refreshTokenValidation, logoutController);
 router.get('/verify-email/:userId/:token', verifyUserMailValidation, verifyEmailController);
 router.post('/refresh-token', refreshTokenValidation, refreshTokenController);
 router.post('/forget-password', sendVerificationMailValidation, sendForgotPasswordMailController);
