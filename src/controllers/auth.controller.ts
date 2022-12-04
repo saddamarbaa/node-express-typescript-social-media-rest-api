@@ -8,6 +8,7 @@ import {
   refreshTokenService,
   sendForgotPasswordMailService,
   resetPasswordService,
+  removeAuthService,
 } from '@src/services';
 
 export const signupController = (req: Request, res: Response, next: NextFunction) => signupService(req, res, next);
@@ -15,6 +16,9 @@ export const signupController = (req: Request, res: Response, next: NextFunction
 export const loginController = (req: Request, res: Response, next: NextFunction) => loginService(req, res, next);
 
 export const logoutController = (req: Request, res: Response, next: NextFunction) => logoutService(req, res, next);
+
+export const removeAuthController = (req: Request, res: Response, next: NextFunction) =>
+  removeAuthService(req, res, next);
 
 export const verifyEmailController = (req: Request, res: Response, next: NextFunction) =>
   verifyEmailService(req, res, next);
@@ -30,6 +34,7 @@ export default {
   signupController,
   loginController,
   logoutController,
+  removeAuthController,
   verifyEmailController,
   refreshTokenController,
   sendForgotPasswordMailController,

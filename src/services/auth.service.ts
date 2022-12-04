@@ -5,6 +5,7 @@ import { SignOptions } from 'jsonwebtoken';
 import User from '@src/models/User.model';
 import Token from '@src/models/Token.model';
 import {
+  isValidMongooseObjectId,
   response,
   sendConfirmResetPasswordEmail,
   sendEmailVerificationEmail,
@@ -501,6 +502,34 @@ export const logoutService: RequestHandler = async (req, res, next) => {
   }
 };
 
+export const removeAuthService = async (req: Request, res: Response, next: NextFunction) => {
+  if (!isValidMongooseObjectId(req.params.userId) || !req.params.userId) {
+    return next(createHttpError(422, `Invalid request`));
+  }
+
+  try {
+    const user = await User.findByIdAndRemove({
+      _id: req.params.userId,
+    });
+
+    if (!user) {
+      return next(createHttpError(422, `Failed to delete user by given ID ${req.params.userId}`));
+    }
+
+    return res.status(200).json(
+      response<null>({
+        data: null,
+        success: true,
+        error: false,
+        message: `Successfully deleted user by ID ${req.params.userId}`,
+        status: 200,
+      })
+    );
+  } catch (error) {
+    return next(InternalServerError);
+  }
+};
+
 export default {
   signupService,
   loginService,
@@ -509,4 +538,5 @@ export default {
   sendForgotPasswordMailService,
   resetPasswordService,
   logoutService,
+  removeAuthService,
 };
