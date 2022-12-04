@@ -464,6 +464,43 @@ export const resetPasswordService: RequestHandler = async (req, res, next) => {
   }
 };
 
+export const logoutService: RequestHandler = async (req, res, next) => {
+  const { refreshToken } = req.body;
+
+  try {
+    const token = await Token.findOne({
+      refreshToken,
+    });
+
+    if (!token) {
+      return next(new createHttpError.BadRequest());
+    }
+
+    const userId = await verifyRefreshToken(refreshToken);
+
+    if (!userId) {
+      return next(new createHttpError.BadRequest());
+    }
+
+    // Clear Token
+    await Token.deleteOne({
+      refreshToken,
+    });
+
+    return res.status(200).json(
+      response<null>({
+        data: null,
+        success: true,
+        error: false,
+        message: 'Auth logout success',
+        status: 200,
+      })
+    );
+  } catch (error) {
+    return next(InternalServerError);
+  }
+};
+
 export default {
   signupService,
   loginService,
@@ -471,4 +508,5 @@ export default {
   refreshTokenService,
   sendForgotPasswordMailService,
   resetPasswordService,
+  logoutService,
 };
