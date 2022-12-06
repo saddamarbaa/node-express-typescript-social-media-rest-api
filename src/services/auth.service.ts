@@ -320,15 +320,11 @@ export const updateAuthService = async (req: AuthenticatedRequestBody<IUser>, re
     firstName,
     lastName,
     email,
-    password,
     dateOfBirth,
     gender,
-    confirmPassword,
     familyName,
     mobileNumber,
-    isDeleted,
     status,
-    isVerified,
     role,
     bio,
     acceptTerms,
@@ -361,15 +357,11 @@ export const updateAuthService = async (req: AuthenticatedRequestBody<IUser>, re
     user.firstName = firstName || user.firstName;
     user.lastName = lastName || user.lastName;
     user.email = email || user.email;
-    user.password = password || user.password;
-    user.confirmPassword = confirmPassword || user.confirmPassword;
     user.gender = gender || user.gender;
     user.dateOfBirth = dateOfBirth || user.dateOfBirth;
     user.familyName = familyName || user.familyName;
     user.mobileNumber = mobileNumber || user.mobileNumber;
-    user.isDeleted = isDeleted || user.isDeleted;
     user.status = status || user.status;
-    user.isVerified = isVerified || user.isVerified;
     user.role = role || user.role;
     user.acceptTerms = acceptTerms || user.acceptTerms;
     user.bio = bio || user.bio;
