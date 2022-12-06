@@ -1,0 +1,1315 @@
+openapi: '3.0.0'
+info:
+  title: Blog API - learnCodeWithSaddam
+  description: Free Open source REST API
+  version: 1.0.1
+  contact:
+    name: Saddam Arbaa
+    email: 'saddamarbaas@gmail.com'
+    url: 'https://www.linkedin.com/in/saddamarbaa/'
+  license:
+    name: 'Apache 2.0'
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+
+# servers:
+#   - url: http://localhost:8000/api/v1
+#     description: Production version of the api, (production)
+#   - url: http://localhost:8000/api/v1
+#     description: Localhost version of the api
+
+servers:
+  - url: '{serverUrl}/api/{apiVersion}'
+    variables:
+      apiVersion:
+        default: v1
+        enum:
+          - v1
+          - v2
+          - v3
+      serverUrl:
+        description: Environment -  Production, Staging, Test or Dev
+        default: https://blog-post-api-sadam.herokuapp.com
+        enum:
+          - https://blog-post-api-sadam.herokuapp.com
+          - https://staging-api-sadam.herokuapp.com
+          - https://test-api-sadam.herokuapp.com
+          - http://localhost:8000
+
+paths:
+  /healthChecker:
+    get:
+      summary: Api health check endpoint
+      tags:
+        - HealthCheck
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Welcome to blog API
+                  data:
+                    type: object
+                    nullable: true
+                    example: null
+
+  /test/healthChecker:
+    get:
+      deprecated: true
+      summary: This endpoint is been deprecated
+      tags:
+        - HealthCheck
+      responses:
+        '400':
+          description: Deprecated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                    description:
+                  error:
+                    type: boolean
+                    example: true
+                  status:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: Deprecated Api
+                  data:
+                    type: object
+                    nullable: true
+                    example: null
+
+  /posts:
+    get:
+      summary: Returns a list of posts
+      tags:
+        - Post
+      description:
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            example: 10
+          description: The numbers of items to return (the default value is 10)
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+          description: Pagination page number (the default value is 1)
+        - in: query
+          name: filterBy
+          schema:
+            type: string
+            example:
+          description: Filter type (Example - category)
+        - in: query
+          name: category
+          schema:
+            type: string
+            example:
+          description: Category name (Example - coding)
+        - in: query
+          name: search
+          schema:
+            type: string
+            example:
+          description: search term (Example - nodejs)
+      responses:
+        '200': # status code
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description: is success or fail
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Successful Found posts
+                  data:
+                    type: object
+                    properties:
+                      totalDocs:
+                        type: integer
+                        minimum: 0
+                      totalPages:
+                        type: integer
+                      lastPage:
+                        type: integer
+                      count:
+                        type: integer
+                      currentPage:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                            minimum: 1
+                          limit:
+                            type: integer
+                            minimum: 1
+                      nextPage:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                            minimum: 1
+                          limit:
+                            type: integer
+                            minimum: 1
+                      posts:
+                        type: array
+                        items:
+                          type: object
+                          '$ref': '#/components/schemas/Post'
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+
+    post:
+      security:
+        - Authorization: []
+      summary: Add a new post
+      tags:
+        - Post
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              '$ref': '#/components/schemas/PostRequest'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 201
+                  message:
+                    type: string
+                    example: Successfully added new post
+                  data:
+                    type: object
+                    '$ref': '#/components/schemas/PostInDB'
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+
+  /posts/{postId}:
+    get:
+      summary: Return post based on request id
+      tags:
+        - Post
+      description:
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          description: Unique id
+          schema:
+            type: string
+            minimum: 1
+            default: 6358c27dca30b98e0e68d063
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description: is success or fail
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfully Found post by given id ...
+                  data:
+                    type: object
+                    properties:
+                      post:
+                        type: object
+                        $ref: '#/components/schemas/Post'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+    put:
+      security:
+        - Authorization: []
+      summary: Edit post based on request id
+      tags:
+        - Post
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          description: Unique id
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+            example: 6358c2odca30b98e0e686063
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PostRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfully updated post by ID ...
+                  data:
+                    type: object
+                    '$ref': '#/components/schemas/PostInDB'
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+    delete:
+      summary: Delete post based on request id
+      tags:
+        - Post
+      security:
+        - Authorization: []
+          required: true
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          description: Unique id
+          schema:
+            type: string
+            minimum: 1
+            example: 6358c2odca3tb98e0e68d063
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfully deleted post by ID ...
+                  data:
+                    type: object
+                    nullable: true
+                    example: null
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+  /auth/signup:
+    post:
+      summary: Register new user
+      tags:
+        - Auth
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Auth Signup is success. An Email with Verification link has been sent to your account ${email} Please Verify Your Email first or use the email verification lik which is been send with the response body to verfiy your email
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          accessToken:
+                            type: string
+                          refreshToken:
+                            type: 'string'
+                          verifyEmailLink:
+                            type: string
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+  /auth/login:
+    post:
+      summary: Authenticate a user
+      tags:
+        - Auth
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: testverstion@gmail.com
+                password:
+                  type: string
+                  example: 12345test
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Auth logged in successful
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/AuthResponse'
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+
+  /auth/me:
+    get:
+      security:
+        - Authorization: []
+      summary: Return user profile
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: 'Successfully found user profile 🍀'
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/AuthResponse'
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+
+  /auth/logout:
+    post:
+      summary: Un authenticate a user
+      tags:
+        - Auth
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2MzU4YmU5YWNhMzBiOThlMGU2OGQwM2QiLCJpYXQiOjE2NzAxNTUxODEsImV4cCI6MTcwMTcxMjc4MSwiYXVkIjoiNjM1OGJlOWFjYTMwYjk4ZTBlNjhkMDNkIiwiaXNzIjoidGVzdG5kb2Vqcy5jb20ifQ.CIAighkM5LkNMRZ4pnzhZ-sjXurZA8Sd1qKq4VYuZXw
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Auth logout success
+                  data:
+                    type: object
+                    nullable: true
+                    example: null
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+
+  /auth/update:
+    put:
+      security:
+        - Authorization: []
+      summary: Edit user based on request id
+      tags:
+        - Auth
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          description: Unique id
+          schema:
+            type: integer
+            format: int64
+            example: 6358c2odca30b98e0e68d063
+            minimum: 1
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfully updated post by ID ...
+                  data:
+                    type: object
+                    '$ref': '#/components/schemas/PostInDB'
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+
+  /auth/remove:
+    delete:
+      security:
+        - Authorization: []
+      summary: Delete user based on request id
+      tags:
+        - Auth
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          description: Unique id
+          schema:
+            type: string
+            minimum: 1
+            example: 6358c2odca30b98e0e68d063
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Successfully deleted user by ID ...
+                  data:
+                    type: object
+                    nullable: true
+                    example: null
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+
+  /auth/verify-email/{userId}/{token}:
+    get:
+      summary: Verify auth email
+      tags:
+        - Auth
+      description:
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          description: Unique id
+          schema:
+            type: string
+            minimum: 1
+            example: 6358c27dca30b98e0e68d063
+        - in: path
+          name: token
+          required: true
+          description: Unique token
+          schema:
+            type: string
+            minimum: 1
+            example: 6358c27dca30b98e0e68d063
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Your account has been successfully verified . Please Login
+                  data:
+                    type: object
+                    nullable: true
+                    example: null
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+
+  /auth/refresh-token:
+    post:
+      summary: Get new access and refresh token
+      tags:
+        - Auth
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  minimum: 1
+                  example: 6358c27dca30b98e0e68d063
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Auth logged in successful.
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          accessToken:
+                            type: string
+                          refreshToken:
+                            type: 'string'
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+
+  /auth/forget-password:
+    post:
+      summary: Allow user to get new password (send rest password token to user email)
+      tags:
+        - Auth
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  minimum: 1
+                  example: 6358c27dca30b98e0e68d063
+                email:
+                  type: string
+                  example: testverstion@gmail.com
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Auth logged in successful.
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          accessToken:
+                            type: string
+                          refreshToken:
+                            type: 'string'
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+
+  /auth/reset-password/{userId}/{token}:
+    post:
+      summary: Endpoint to rest user password using magic link which is been sent to their email
+      tags:
+        - Auth
+      description:
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          description: Unique id
+          schema:
+            type: string
+            minimum: 1
+            example: 6358c27dca30b98e0e68d063
+        - in: path
+          name: token
+          required: true
+          description: Unique token
+          schema:
+            type: string
+            minimum: 1
+            example: 6358c27dca30b98e0e68d063
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  minimum: 1
+                  example: 6358c27dca30
+                confirmPassword:
+                  type: string
+                  example: 6358c27dca30
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Your password has been Password Reset Successfully updated please login
+                  data:
+                    type: object
+                    properties:
+                      User:
+                        type: object
+                        properties:
+                          loginLink:
+                            type: string
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/BadRequestResponse'
+
+        '500':
+          description: 500 Internal Server Error
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/ServerErrorResponse'
+
+  /admin/users:
+    get:
+      security:
+        - Authorization: []
+      summary: Returns a list of users
+      tags:
+        - Admin
+      description: admin only api
+      parameters:
+        - in: header
+          name: adminToken
+          required: true
+          description: Admin authorization access token
+          schema:
+            type: string
+            minimum: 1
+            default: 6358c27dca30b98e0e68d063
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                    description:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Success
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          type: object
+                          '$ref': '#/components/schemas/AuthResponse'
+
+components:
+  schemas:
+    BasicResponse:
+      {
+        'properties':
+          {
+            'success': { 'type': 'boolean' },
+            'error': { 'type': 'boolean' },
+            'message': { 'type': 'string' },
+            'status': { 'type': 'number' },
+            'data': { 'type': 'any' },
+          },
+      }
+
+    'Post':
+      {
+        'properties':
+          {
+            '_id': { 'type': 'string' },
+            'title': { 'type': 'string' },
+            'content': { 'type': 'string' },
+            'postImage': { 'type': 'string' },
+            'category': { 'type': 'string' },
+            'updatedAt': { 'type': 'string' },
+            'author':
+              {
+                'properties':
+                  {
+                    'name': { 'type': 'string' },
+                    'firstName': { 'type': 'string' },
+                    'lastName': { 'type': 'string' },
+                    'surname': { 'type': 'string' },
+                    'email': { 'type': 'string' },
+                    'dateOfBirth': { 'type': 'string' },
+                    'gender': { 'type': 'string' },
+                    'joinedDate': { 'type': 'string' },
+                    'isVerified': { 'type': 'string' },
+                    'profileImage': { 'type': 'string' },
+                    'mobileNumber': { 'type': 'string' },
+                    'status': { 'type': 'string' },
+                    'role': { 'type': 'string' },
+                    'companyName': { 'type': 'string' },
+                    'acceptTerms': { 'type': 'string' },
+                    'nationality': { 'type': 'string' },
+                    'favoriteAnimal': { 'type': 'string' },
+                    'address': { 'type': 'string' },
+                    'bio': { 'type': 'string' },
+                  },
+              },
+          },
+      }
+
+    'PostInDB':
+      {
+        'properties':
+          {
+            '_id': { 'type': 'string' },
+            'title': { 'type': 'string' },
+            'content': { 'type': 'string' },
+            'postImage': { 'type': 'string' },
+            'category': { 'type': 'string' },
+            'updatedAt': { 'type': 'string' },
+            'author': { 'type': 'string' },
+          },
+      }
+
+    PostRequest:
+      type: object
+      description: Model containing post request info
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        postImage:
+          type: string
+          format: binary
+          description: Image type /png/jpg/jpeg/webp
+
+    AuthRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          required: true
+        email:
+          type: string
+          required: true
+        password:
+          type: string
+        confirmPassword:
+          type: string
+        acceptTerms:
+          type: boolean
+          default: true
+        firstName:
+          type: string
+        lastName:
+          type: string
+        surname:
+          type: string
+        dateOfBirth:
+          type: string
+        gender:
+          type: string
+        joinedDate:
+          type: string
+        isVerified:
+          type: string
+        profileImage:
+          type: string
+        mobileNumber:
+          type: string
+        companyName:
+          type: string
+        nationality:
+          type: string
+        favoriteAnimal:
+          type: string
+        address:
+          type: string
+        bio:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+          required: true
+        firstName:
+          type: string
+        lastName:
+          type: string
+        surname:
+          type: string
+        email:
+          type: string
+          required: true
+        dateOfBirth:
+          type: string
+        gender:
+          type: string
+        joinedDate:
+          type: string
+        isVerified:
+          type: string
+        profileImage:
+          type: string
+        mobileNumber:
+          type: string
+        status:
+          type: string
+        role:
+          type: string
+        companyName:
+          type: string
+        acceptTerms:
+          type: string
+        nationality:
+          type: string
+        favoriteAnimal:
+          type: string
+        address:
+          type: string
+        bio:
+          type: string
+
+    ServerErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+          description:
+        error:
+          type: boolean
+          example: true
+        status:
+          type: integer
+          example: 500
+        message:
+          type: string
+          example: Internal Server Error (different message based on request)
+        data:
+          type: object
+          nullable: true
+          example: null
+
+    BadRequestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+          description:
+        error:
+          type: boolean
+          example: true
+        status:
+          type: integer
+          example: between 400 - 500
+        message:
+          type: string
+          example: Bad request (different message based on request)
+        data:
+          type: object
+          nullable: true
+          example: null
+
+  # securitySchemes:
+  #   { Authorization: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT', value: 'Bearer <JWT token here>' } }
+
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: 'bearer'
+      bearerFormat: 'JWT'
+      value: 'Bearer <JWT token here>'
