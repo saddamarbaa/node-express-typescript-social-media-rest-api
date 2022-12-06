@@ -10,6 +10,7 @@ import {
   resetPasswordService,
   removeAuthService,
   updateAuthService,
+  getAuthProfileService,
 } from '@src/services';
 import { AuthenticatedRequestBody, IUser } from '@src/interfaces';
 
@@ -24,6 +25,9 @@ export const updateAuthController = (req: AuthenticatedRequestBody<IUser>, res: 
 
 export const removeAuthController = (req: AuthenticatedRequestBody<IUser>, res: Response, next: NextFunction) =>
   removeAuthService(req, res, next);
+
+export const getAuthProfileController = (req: AuthenticatedRequestBody<IUser>, res: Response, next: NextFunction) =>
+  getAuthProfileService(req, res, next);
 
 export const verifyEmailController = (req: Request, res: Response, next: NextFunction) =>
   verifyEmailService(req, res, next);
@@ -45,4 +49,5 @@ export default {
   refreshTokenController,
   sendForgotPasswordMailController,
   resetPasswordController,
+  getAuthProfileController,
 };

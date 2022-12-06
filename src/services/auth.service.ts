@@ -292,12 +292,16 @@ export const logoutService: RequestHandler = async (req, res, next) => {
       refreshToken,
     });
 
+    // Clear cookies
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+
     return res.status(200).json(
       response<null>({
         data: null,
         success: true,
         error: false,
-        message: 'Auth logout success',
+        message: 'Successfully logged out 😏 🍀',
         status: 200,
       })
     );
@@ -455,6 +459,35 @@ export const removeAuthService = async (req: AuthenticatedRequestBody<IUser>, re
         error: false,
         message: `Successfully deleted user by ID ${req.params.userId}`,
         status: 200,
+      })
+    );
+  } catch (error) {
+    return next(InternalServerError);
+  }
+};
+
+export const getAuthProfileService = async (
+  req: AuthenticatedRequestBody<IUser>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await User.findById(req?.user?._id);
+
+    if (!user) {
+      return next(createHttpError(401, `Auth Failed `));
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, confirmPassword, ...otherUserInfo } = user._doc;
+
+    return res.status(200).send(
+      response<{ user: IUser }>({
+        success: true,
+        error: false,
+        message: 'Successfully found user profile 🍀',
+        status: 200,
+        data: { user: otherUserInfo },
       })
     );
   } catch (error) {
@@ -668,4 +701,5 @@ export default {
   logoutService,
   removeAuthService,
   updateAuthService,
+  getAuthProfileService,
 };

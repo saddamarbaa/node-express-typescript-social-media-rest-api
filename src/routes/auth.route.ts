@@ -20,6 +20,7 @@ import {
   sendForgotPasswordMailController,
   signupController,
   verifyEmailController,
+  getAuthProfileController,
 } from '@src/controllers';
 
 const router = express.Router();
@@ -33,5 +34,6 @@ router.get('/verify-email/:userId/:token', verifyUserMailValidation, verifyEmail
 router.post('/refresh-token', refreshTokenValidation, refreshTokenController);
 router.post('/forget-password', sendVerificationMailValidation, sendForgotPasswordMailController);
 router.post('/reset-password/:userId/:token', resetPasswordValidation, resetPasswordController);
+router.get('/me', isAuth, getAuthProfileController);
 
 export = router;
