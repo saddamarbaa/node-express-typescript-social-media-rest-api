@@ -292,12 +292,16 @@ export const logoutService: RequestHandler = async (req, res, next) => {
       refreshToken,
     });
 
+    // Clear cookies
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+
     return res.status(200).json(
       response<null>({
         data: null,
         success: true,
         error: false,
-        message: 'Auth logout success',
+        message: 'Successfully logged out 😏 🍀',
         status: 200,
       })
     );
