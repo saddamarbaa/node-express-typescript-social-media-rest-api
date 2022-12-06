@@ -143,7 +143,7 @@ const UserSchema = new mongoose_1.Schema({
         required: false,
         trim: true,
         lowercase: true,
-        minlength: [3, "Job Title can't be smaller than 3 characters"],
+        minlength: [2, "Job Title can't be smaller than 3 characters"],
         maxLength: [30, "Job Title can't be greater than 15 characters"],
     },
     address: {

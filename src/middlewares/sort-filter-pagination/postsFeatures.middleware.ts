@@ -6,7 +6,7 @@ import { TPaginationRequest, TPaginationResponse } from '@src/interfaces';
 export const postsPaginationMiddleware = () => {
   return async (req: TPaginationRequest, res: TPaginationResponse, next: NextFunction) => {
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 1000;
+    const limit = Number(req.query.limit) || 2;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
@@ -84,7 +84,7 @@ export const postsPaginationMiddleware = () => {
         .select('title content postImage author createdAt updatedAt, category')
         .populate(
           'author',
-          'name firstName lastName  surname email dateOfBirth gender joinedDate cart isVerified  profileImage  mobileNumber  status role  companyName   acceptTerms nationality  favoriteAnimal  address  profileImage  bio mobileNumber'
+          'name firstName lastName  surname email dateOfBirth gender joinedDate isVerified  profileImage  mobileNumber  status role  companyName   acceptTerms nationality  favoriteAnimal  address  bio'
         )
         .limit(limit)
         .sort(sort)

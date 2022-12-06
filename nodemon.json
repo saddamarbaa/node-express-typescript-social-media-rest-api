@@ -1,6 +1,6 @@
 {
-  "watch": ["src"],
-  "ext": "ts,js,json",
+  "watch": ["src", "swagger"],
+  "ext": "ts,js,json,yaml,jsx",
   "ignore": ["node_modules", "coverage", "dist"],
   "exec": "ts-node -r ts-node/register/transpile-only -r tsconfig-paths/register ./src/index.ts",
   "restartable": "rs",

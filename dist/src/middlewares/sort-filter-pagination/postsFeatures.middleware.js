@@ -8,7 +8,7 @@ const Post_model_1 = __importDefault(require("@src/models/Post.model"));
 const postsPaginationMiddleware = () => {
     return async (req, res, next) => {
         const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 1000;
+        const limit = Number(req.query.limit) || 2;
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
         const results = {
@@ -76,7 +76,7 @@ const postsPaginationMiddleware = () => {
             results.results = await Post_model_1.default
                 .find(filter)
                 .select('title content postImage author createdAt updatedAt, category')
-                .populate('author', 'name firstName lastName  surname email dateOfBirth gender joinedDate cart isVerified  profileImage  mobileNumber  status role  companyName   acceptTerms nationality  favoriteAnimal  address  profileImage  bio mobileNumber')
+                .populate('author', 'name firstName lastName  surname email dateOfBirth gender joinedDate isVerified  profileImage  mobileNumber  status role  companyName   acceptTerms nationality  favoriteAnimal  address  bio')
                 .limit(limit)
                 .sort(sort)
                 .skip(startIndex)
