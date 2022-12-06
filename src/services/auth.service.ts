@@ -466,6 +466,35 @@ export const removeAuthService = async (req: AuthenticatedRequestBody<IUser>, re
   }
 };
 
+export const getAuthProfileService = async (
+  req: AuthenticatedRequestBody<IUser>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await User.findById(req?.user?._id);
+
+    if (!user) {
+      return next(createHttpError(401, `Auth Failed `));
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, confirmPassword, ...otherUserInfo } = user._doc;
+
+    return res.status(200).send(
+      response<{ user: IUser }>({
+        success: true,
+        error: false,
+        message: 'Successfully found user profile 🍀',
+        status: 200,
+        data: { user: otherUserInfo },
+      })
+    );
+  } catch (error) {
+    return next(InternalServerError);
+  }
+};
+
 export const refreshTokenService: RequestHandler = async (req, res, next) => {
   const { refreshToken } = req.body;
 
@@ -672,4 +701,5 @@ export default {
   logoutService,
   removeAuthService,
   updateAuthService,
+  getAuthProfileService,
 };
