@@ -14,7 +14,7 @@ export interface Post {
   category?: string;
 }
 
-export interface CreatePostRequestBody<T> extends Request {
+export interface AuthenticatedRequestBody<T> extends Request {
   body: T;
   user?: IUser;
 }

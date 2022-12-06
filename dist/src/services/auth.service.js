@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPasswordService = exports.sendForgotPasswordMailService = exports.refreshTokenService = exports.verifyEmailService = exports.loginService = exports.signupService = void 0;
+exports.resetPasswordService = exports.sendForgotPasswordMailService = exports.refreshTokenService = exports.getAuthProfileService = exports.removeAuthService = exports.updateAuthService = exports.logoutService = exports.verifyEmailService = exports.loginService = exports.signupService = void 0;
 const http_errors_1 = __importStar(require("http-errors"));
 const User_model_1 = __importDefault(require("@src/models/User.model"));
 const Token_model_1 = __importDefault(require("@src/models/Token.model"));
@@ -89,7 +89,7 @@ const signupService = async (req, res, next) => {
         }));
     }
     catch (error) {
-        return next(http_errors_1.InternalServerError);
+        return next(error);
     }
 };
 exports.signupService = signupService;
@@ -174,7 +174,7 @@ const loginService = async (req, res, next) => {
         }));
     }
     catch (error) {
-        return next(http_errors_1.InternalServerError);
+        return next(error);
     }
 };
 exports.loginService = loginService;
@@ -217,6 +217,169 @@ const verifyEmailService = async (req, res, next) => {
     }
 };
 exports.verifyEmailService = verifyEmailService;
+const logoutService = async (req, res, next) => {
+    const { refreshToken } = req.body;
+    try {
+        const token = await Token_model_1.default.findOne({
+            refreshToken,
+        });
+        if (!token) {
+            return next(new http_errors_1.default.BadRequest());
+        }
+        const userId = await (0, middlewares_1.verifyRefreshToken)(refreshToken);
+        if (!userId) {
+            return next(new http_errors_1.default.BadRequest());
+        }
+        await Token_model_1.default.deleteOne({
+            refreshToken,
+        });
+        res.clearCookie('accessToken');
+        res.clearCookie('refreshToken');
+        return res.status(200).json((0, utils_1.response)({
+            data: null,
+            success: true,
+            error: false,
+            message: 'Successfully logged out 😏 🍀',
+            status: 200,
+        }));
+    }
+    catch (error) {
+        return next(http_errors_1.InternalServerError);
+    }
+};
+exports.logoutService = logoutService;
+const updateAuthService = async (req, res, next) => {
+    if (!(0, utils_1.isValidMongooseObjectId)(req.params.userId) || !req.params.userId) {
+        return next((0, http_errors_1.default)(422, `Invalid request`));
+    }
+    const { name, firstName, lastName, email, dateOfBirth, gender, familyName, mobileNumber, status, role, bio, acceptTerms, companyName, nationality, address, favoriteAnimal, jobTitle, } = req.body;
+    try {
+        const user = await User_model_1.default.findById(req.params.userId);
+        if (!user) {
+            return next(new http_errors_1.default.BadRequest());
+        }
+        if (!req.user?._id.equals(user._id) && req?.user?.role !== 'admin') {
+            return next((0, http_errors_1.default)(403, `Auth Failed (Unauthorized)`));
+        }
+        if (email) {
+            const existingUser = await User_model_1.default.findOne({ email: new RegExp(`^${email}$`, 'i') });
+            if (existingUser && !existingUser._id.equals(user._id)) {
+                return next((0, http_errors_1.default)(422, `E-Mail address ${email} is already exists, please pick a different one.`));
+            }
+        }
+        user.name = name || user.name;
+        user.firstName = firstName || user.firstName;
+        user.lastName = lastName || user.lastName;
+        user.email = email || user.email;
+        user.gender = gender || user.gender;
+        user.dateOfBirth = dateOfBirth || user.dateOfBirth;
+        user.familyName = familyName || user.familyName;
+        user.mobileNumber = mobileNumber || user.mobileNumber;
+        user.status = status || user.status;
+        user.role = role || user.role;
+        user.acceptTerms = acceptTerms || user.acceptTerms;
+        user.bio = bio || user.bio;
+        user.familyName = familyName || user.familyName;
+        user.acceptTerms = acceptTerms || user.acceptTerms;
+        user.companyName = companyName || user.companyName;
+        user.nationality = nationality || user.nationality;
+        user.address = address || user.address;
+        user.jobTitle = jobTitle || user.jobTitle;
+        user.favoriteAnimal = favoriteAnimal || user.favoriteAnimal;
+        user.profileImage = req.file?.filename ? `/static/uploads/users/${req.file.filename}` : user.profileImage;
+        const updatedUser = await user.save();
+        if (!updatedUser) {
+            return next((0, http_errors_1.default)(422, `Failed to update user by given ID ${req.params.userId}`));
+        }
+        const data = {
+            user: {
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                firstName: updatedUser.firstName,
+                lastName: updatedUser.lastName,
+                email: updatedUser.email,
+                dateOfBirth: updatedUser.dateOfBirth,
+                gender: updatedUser.gender,
+                createdAt: updatedUser?.createdAt,
+                updatedAt: updatedUser?.updatedAt,
+                role: updatedUser?.role,
+                status: updatedUser.status,
+                mobileNumber: updatedUser?.mobileNumber,
+                familyName: updatedUser?.familyName,
+                profileImage: updatedUser?.profileImage,
+                isVerified: updatedUser?.isVerified,
+                acceptTerms: updatedUser?.acceptTerms,
+                bio: updatedUser.bio,
+                companyName: updatedUser.companyName,
+                nationality: updatedUser.nationality,
+                address: updatedUser.address,
+                favoriteAnimal: updatedUser.favoriteAnimal,
+            },
+        };
+        return res.status(200).json((0, utils_1.response)({
+            data,
+            success: true,
+            error: false,
+            message: `Successfully updated user by ID: ${req.params.userId}`,
+            status: 200,
+        }));
+    }
+    catch (error) {
+        return next(http_errors_1.InternalServerError);
+    }
+};
+exports.updateAuthService = updateAuthService;
+const removeAuthService = async (req, res, next) => {
+    if (!(0, utils_1.isValidMongooseObjectId)(req.params.userId) || !req.params.userId) {
+        return next((0, http_errors_1.default)(422, `Invalid request`));
+    }
+    try {
+        const user = await User_model_1.default.findById(req.params.userId);
+        if (!user) {
+            return next(new http_errors_1.default.BadRequest());
+        }
+        if (!req.user?._id.equals(user._id) && req?.user?.role !== 'admin') {
+            return next((0, http_errors_1.default)(403, `Auth Failed (Unauthorized)`));
+        }
+        const deletedUser = await User_model_1.default.findByIdAndRemove({
+            _id: req.params.userId,
+        });
+        if (!deletedUser) {
+            return next((0, http_errors_1.default)(422, `Failed to delete user by given ID ${req.params.userId}`));
+        }
+        return res.status(200).json((0, utils_1.response)({
+            data: null,
+            success: true,
+            error: false,
+            message: `Successfully deleted user by ID ${req.params.userId}`,
+            status: 200,
+        }));
+    }
+    catch (error) {
+        return next(http_errors_1.InternalServerError);
+    }
+};
+exports.removeAuthService = removeAuthService;
+const getAuthProfileService = async (req, res, next) => {
+    try {
+        const user = await User_model_1.default.findById(req?.user?._id);
+        if (!user) {
+            return next((0, http_errors_1.default)(401, `Auth Failed `));
+        }
+        const { password, confirmPassword, ...otherUserInfo } = user._doc;
+        return res.status(200).send((0, utils_1.response)({
+            success: true,
+            error: false,
+            message: 'Successfully found user profile 🍀',
+            status: 200,
+            data: { user: otherUserInfo },
+        }));
+    }
+    catch (error) {
+        return next(http_errors_1.InternalServerError);
+    }
+};
+exports.getAuthProfileService = getAuthProfileService;
 const refreshTokenService = async (req, res, next) => {
     const { refreshToken } = req.body;
     try {
@@ -369,5 +532,9 @@ exports.default = {
     refreshTokenService: exports.refreshTokenService,
     sendForgotPasswordMailService: exports.sendForgotPasswordMailService,
     resetPasswordService: exports.resetPasswordService,
+    logoutService: exports.logoutService,
+    removeAuthService: exports.removeAuthService,
+    updateAuthService: exports.updateAuthService,
+    getAuthProfileService: exports.getAuthProfileService,
 };
 //# sourceMappingURL=auth.service.js.map

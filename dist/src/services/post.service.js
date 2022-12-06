@@ -194,7 +194,7 @@ const editPostService = async (req, res, next) => {
             },
             success: true,
             error: false,
-            message: `Successfully deleted post by ID ${req.params.postId}`,
+            message: `Successfully updated post by ID ${req.params.postId}`,
             status: 200,
         }));
     }
