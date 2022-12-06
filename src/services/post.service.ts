@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import Post from '@src/models/Post.model';
 import { isValidMongooseObjectId, response } from '@src/utils';
-import { CreatePostRequestBody, Post as TPost, TPaginationResponse } from '@src/interfaces';
+import { AuthenticatedRequestBody, Post as TPost, TPaginationResponse } from '@src/interfaces';
 
 export const getPostsService = async (_req: Request, res: TPaginationResponse) => {
   if (res?.paginatedResults) {
@@ -47,7 +47,7 @@ export const getPostsService = async (_req: Request, res: TPaginationResponse) =
   }
 };
 
-export const createPostService = async (req: CreatePostRequestBody<TPost>, res: Response, next: NextFunction) => {
+export const createPostService = async (req: AuthenticatedRequestBody<TPost>, res: Response, next: NextFunction) => {
   const { title, content, category } = req.body;
 
   if (!req.file) {
@@ -188,7 +188,7 @@ export const deletePostService = async (req: Request, res: Response, next: NextF
   }
 };
 
-export const editPostService = async (req: CreatePostRequestBody<TPost>, res: Response, next: NextFunction) => {
+export const editPostService = async (req: AuthenticatedRequestBody<TPost>, res: Response, next: NextFunction) => {
   const { title, content, category } = req.body;
   if (!isValidMongooseObjectId(req.params.postId) || !req.params.postId) {
     return res.status(422).send(

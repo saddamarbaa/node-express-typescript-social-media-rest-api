@@ -8,6 +8,9 @@ export const signupUserValidation: RequestHandler = (req, res, next) =>
 
 export const loginUserValidation: RequestHandler = (req, res, next) => validator(userSchema.loginUser, req.body, next);
 
+export const updateUserValidation: RequestHandler = (req, res, next) =>
+  validator(userSchema.updateUser, req.body, next);
+
 export const verifyUserMailValidation: RequestHandler = (req, res, next) => {
   console.log(mongoose.Types.ObjectId.isValid(req.params.userId));
   return validator(userSchema.verifyUserMail, req.params, next);

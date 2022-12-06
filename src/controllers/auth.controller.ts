@@ -9,7 +9,9 @@ import {
   sendForgotPasswordMailService,
   resetPasswordService,
   removeAuthService,
+  updateAuthService,
 } from '@src/services';
+import { AuthenticatedRequestBody, IUser } from '@src/interfaces';
 
 export const signupController = (req: Request, res: Response, next: NextFunction) => signupService(req, res, next);
 
@@ -17,7 +19,10 @@ export const loginController = (req: Request, res: Response, next: NextFunction)
 
 export const logoutController = (req: Request, res: Response, next: NextFunction) => logoutService(req, res, next);
 
-export const removeAuthController = (req: Request, res: Response, next: NextFunction) =>
+export const updateAuthController = (req: AuthenticatedRequestBody<IUser>, res: Response, next: NextFunction) =>
+  updateAuthService(req, res, next);
+
+export const removeAuthController = (req: AuthenticatedRequestBody<IUser>, res: Response, next: NextFunction) =>
   removeAuthService(req, res, next);
 
 export const verifyEmailController = (req: Request, res: Response, next: NextFunction) =>
@@ -34,6 +39,7 @@ export default {
   signupController,
   loginController,
   logoutController,
+  updateAuthController,
   removeAuthController,
   verifyEmailController,
   refreshTokenController,
